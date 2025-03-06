@@ -1,0 +1,7 @@
+.env
+*.dump
+node_modules
+.vscode
+.idea
+scripts/**/*.csv
+scripts/**/*.cypher
