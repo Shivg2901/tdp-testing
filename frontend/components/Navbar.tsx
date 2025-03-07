@@ -13,7 +13,7 @@ export default function Navbar() {
             Target Biomarker Platform (TDP)
           </h1>
         </Link>
-        <Link href={"#"} className="text-xs self-end">
+        <Link href={"/docs/CHANGELOG"} className="text-xs self-end">
           Version: {process.env.NEXT_PUBLIC_VERSION || "2.0.0-beta"}
         </Link>
       </div>

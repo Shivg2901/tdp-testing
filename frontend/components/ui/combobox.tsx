@@ -48,7 +48,7 @@ export function Combobox({
           <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align={align} className={cn('w-[200px] p-0', className)}>
+      <PopoverContent align={align} className={cn('p-0 w-full', className)}>
         <Command>
           <CommandInput placeholder={placeholder} />
           <CommandList>

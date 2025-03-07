@@ -107,7 +107,7 @@ export function NetworkStyle() {
             <Slider
               id='defaultLabelDensity'
               className='w-full'
-              min={0.1}
+              min={0}
               max={10}
               step={0.1}
               value={[defaultLabelDensity]}
@@ -117,9 +117,9 @@ export function NetworkStyle() {
           <Input
             type='number'
             className='w-16 h-8'
-            min={1}
-            max={50}
-            step={1}
+            min={0}
+            max={10}
+            step={0.1}
             value={defaultLabelDensity}
             onChange={e => handleDefaultChange(Number.parseFloat(e.target.value), 'defaultLabelDensity')}
           />

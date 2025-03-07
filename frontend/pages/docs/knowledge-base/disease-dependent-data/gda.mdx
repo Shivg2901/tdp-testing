@@ -1,0 +1,29 @@
+---
+description: Gene Disease Association score, ranging from 0 to 1
+---
+
+# GDA
+
+Gene disease association score is from Open Targets portal. It qualifies the strength of the association between a gene and a disease. This score is derived using a combination of evidence from diverse data sources, e.g. genetic studies, transcriptomics, somatic mutations, drugs and pathways, etc.
+
+We have 4 different diseases — PSP, ALS, FTD and OI.
+
+## PSP & FTD
+
+The PSP and FTD data in Open Targets is shown as below, where you can see the scores of different gene-disease association combinations.
+
+![PSP data in Open Targets platform](../../../../public/image/docs/psp-data-in-opentargets.png)
+
+We transformed the data from Open Targets into the CSV format below, then inserted into our knowledge base.
+
+![GDA data in our knowledge base](../../../../public/image/docs/gda-data-csv.png)
+
+The naming convention of GDA data in the knowledge base follows the format of **\{gene-disease association type\}**, for example, "OT Crispr validation", shown as below:
+
+![PSP & FTD GDA data naming convention](../../../../public/image/docs/psp-ftd-gda-naming-convention.png)
+
+## ALS & OI
+
+ALS and OI GDA data are also from Open Targets, but the name convention is slightly different from PSP and FTD data. We use **\{disease name\}\_\{"GDA"\}\_\{"Score"\}\_\{"opentargets"\}\_\{gene-disease association type\}** as the format, for example, "ALS\_GDA\_Score\_opentargets\_overall\_association\_score", shown as below:
+
+![ALS & OI GDA data naming convention](../../../../public/image/docs/als-oi-gda-naming-convention.png)

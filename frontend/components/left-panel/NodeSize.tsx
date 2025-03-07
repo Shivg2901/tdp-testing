@@ -74,7 +74,7 @@ export function NodeSize({ onPropChange }: { onPropChange: (prop: string | Set<s
             <VirtualizedCombobox
               key={radioValue}
               data={[...radioOptions.database[radioValue], ...radioOptions.user[radioValue]]}
-              className='w-full mt-2'
+              className='mt-2'
               value={selectedNodeSizeProperty}
               onChange={onPropChange}
               width='550px'
@@ -83,7 +83,7 @@ export function NodeSize({ onPropChange }: { onPropChange: (prop: string | Set<s
             <Combobox
               key={radioValue}
               data={[...radioOptions.database[radioValue], ...radioOptions.user[radioValue]]}
-              className='w-full mt-2'
+              className='mt-2'
               value={selectedNodeSizeProperty}
               onChange={onPropChange}
             />

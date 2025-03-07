@@ -26,7 +26,7 @@ export default {
   ),
   logo: (
     <>
-      <Image src="/image/logo.png" alt="TDP Logo" width={40} height={40} />
+      <Image src="/image/logo.png" alt="TDP Logo" width={150} height={150} />
       <span className="ml-2 font-bold">TDP Help Manual</span>
     </>
   ),

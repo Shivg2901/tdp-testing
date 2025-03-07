@@ -43,7 +43,7 @@ export function RadialAnalysis() {
 
   return (
     <Collapsible defaultOpen className="mb-2 border p-2 rounded shadow">
-      <div className="flex items-center justify-between w-full">
+      <div className="flex items-center justify-between">
         <Label className="font-bold">Radial Analysis</Label>
         <CollapsibleTrigger asChild>
           <Button
@@ -59,8 +59,8 @@ export function RadialAnalysis() {
       <CollapsibleContent className="flex flex-col gap-2">
         {radialAnalysisOptions.map((option, idx) => (
           <div key={option.key} className="space-y-1">
-            <div className="flex space-x-2 items-center">
-              <div className="flex flex-col space-y-2 w-full">
+            <div className="flex gap-2 items-center">
+              <div className="flex flex-col gap-2 w-full">
                 <Label
                   htmlFor={option.key}
                   className="text-xs font-semibold flex gap-1 items-center"
@@ -107,8 +107,8 @@ export function RadialAnalysis() {
                     ]}
                     width="550px"
                     align="end"
-                    value={radialAnalysis.nodeDegreeProperty}
                     className="w-full"
+                    value={radialAnalysis.nodeDegreeProperty}
                     onChange={(value) => {
                       if (typeof value !== "string") return;
                       setIsGeneDegree(value === "Gene Degree");

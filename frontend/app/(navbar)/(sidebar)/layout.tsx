@@ -52,7 +52,7 @@ export default function SideBarLayout({
               </Link>
             </li>
             <li className="transition-colors p-2 rounded hover:font-bold">
-              <Link href="https://jianna-manager.gitbook.io/help-manual/" className="flex items-center">
+              <Link href="/docs" className="flex items-center">
                 <Clipboard size={20} className="mr-2" /> Documentation
               </Link>
             </li>

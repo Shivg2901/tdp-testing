@@ -248,7 +248,7 @@ export function FileSheet() {
                 To know more about the file format, click{' '}
                 <Link
                   className='font-semibold underline'
-                  href='https://jianna-manager.gitbook.io/help-manual/network-visualization/left-panel#file-format'
+                  href='/docs/network-visualization/left-panel#file-format'
                   target='_blank'
                 >
                   here ↗

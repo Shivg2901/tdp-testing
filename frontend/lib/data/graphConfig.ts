@@ -92,14 +92,6 @@ export const graphConfig = [
       {
         label: 'FunPPI',
         value: 'FUN_PPI',
-      },
-      {
-        label: 'BIKG',
-        value: 'BIKG',
-      },
-      {
-        label: 'ComPPLete',
-        value: 'ComPPLete',
       }
     ],
   },
