@@ -22,9 +22,11 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+## Backend API Documentation: [API.md](API.md)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Required Services to Run:
+- Neo4j Database: For Graph Database. To get started in the local environment, use either [Neo4j Desktop](https://neo4j.com/download/) or Docker Image. To load the initial data, download it from [here](https://drive.google.com/file/d/1PWnalvz2R1Sj-VtUJOrMYyagp850paxr/view) and import it by following the instructions [here](../README.md#importingexporting-data).
+- Redis: For Redis Queues to auto-clean resources and Short-term session management
 
 ## Installation
 
@@ -57,17 +59,3 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).

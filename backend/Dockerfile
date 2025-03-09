@@ -1,16 +1,16 @@
-# Stage 1: Build
-FROM node:22.1-alpine AS builder
-WORKDIR /usr/src/app
-COPY package*.json ./
+FROM node:22.1-alpine AS base
+WORKDIR /app
+COPY ./package.json /app/
+
+FROM base AS prod-deps
+RUN npm install --omit dev
+
+FROM base AS build
 RUN npm install
 COPY . .
 RUN npm run build
-# Copy *.graphql files to dist folder
-COPY src/*.graphql dist/
-# Stage 2: Run
-FROM node:22.1-alpine
-WORKDIR /usr/src/app
-COPY --from=builder /usr/src/app/dist ./dist
-COPY package*.json ./
-RUN npm install --omit=dev
-CMD ["npm", "run", "start:prod"]
+
+FROM base
+COPY --from=prod-deps /app/node_modules /app/node_modules
+COPY --from=build /app/dist /app/dist
+CMD [ "npm", "run", "start:prod" ]

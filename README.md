@@ -12,7 +12,7 @@ For other IDEs, refer to their mannual for enabling markdown rendering feature.
 - [Server Configuration](#server-configuration)
 - [Installation](#installation)
 - [Importing/Exporting Data](#importingexporting-data)
-- [License](#license)
+- [More Information](#more-information)
 - [Troubleshooting & FAQs](#troubleshooting--faqs)
 
 ## Description
@@ -20,7 +20,7 @@ For other IDEs, refer to their mannual for enabling markdown rendering feature.
 This project is for gene analysis purpose. Frontend contains a web interface for graph traversal  
 and analysing the gene data. Backend contains the graph traversal algorithm and the gene data.
 
-## Server Configuration
+## Server Configuration [SKIP IF RUNNING LOCALLY]
 
 1. Install essential packages (if you don't have) & open firewall ports:
 
@@ -133,39 +133,28 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
 1. Clone the repository
 
     ```bash
-    git clone --recurse-submodules https://github.com/Crecientech-Pvt-Ltd/PDnet.git && cd PDnet
+    git clone https://github.com/Crecientech-Pvt-Ltd/PDNET_PROJECT.git && cd PDnet
     ```
 
-2. Fill environment variables in `.env` & `backend/.env` using [`.env.example`](.env.example) [`backend/.env.example`](https://github.com/Crecientech-Pvt-Ltd/PDnet-backend/blob/main/.env.example) file.
-   Also, change the backend API links in `fronted/index.html`, `frontend/PD_stringDB.html` & `frontend/PD_network.html` to the hostname where backend needs to be hosted.
+2. Fill environment variables in `.env`, `frontend/.env`  `backend/.env` using the `.env.example` files in their respective directory.
 
     ```bash
     cp .env.example .env
     cp backend/.env.example backend/.env
+    cp frontend/.env.example frontend/.env
     ```
 
-3. Change only containerPath of volume to sym-link with current machine. Data for seed needs to be placed inside `data/` folder.
 
-    ```yml
-      services:
-        neo4j:
-          ...
-          volumes:
-            - hostPath:containerPath
-    ```
+##### Video Upload
+3. Download the video files from the following link and place them inside the [`frontend/images/`](./frontend/public/video/) folder.
 
-<div id="video-upload"></div>
+    > [!NOTE]
+    > This is not the most conventional & intuitive place to keep the videos, but this was hard-coded in the frontend code, so directed to keep the videos in this folder. This will soon be changed and once done will be updated in the manual. Also, this workflow will be gradually improved to avoid these steps, but currently the video size exceeds 100MB limit of commit size, so this is the workaround.
 
-4. Download the video files from the following link and place them inside the `frontend/images/` folder. 
+    [Video Files](https://drive.google.com/drive/u/2/folders/1ZnQ7802kUhu9uGyD7rXONvULb4ELSv4l)
+    
 
-    **Info:** This is not the most conventional & intuitive place to keep the videos, but this was hard-coded in the frontend code, so directed to keep the videos in this folder. This will soon be changed and once done will be updated in the manual. Also, this workflow will be gradually improved to avoid these steps, but currently the video size exceeds 100MB limit of commit size, so this is the workaround.
-
-    > [Video Files](https://drive.google.com/drive/u/2/folders/1ZnQ7802kUhu9uGyD7rXONvULb4ELSv4l)
-    > Files to be downloaded are `Intro_of_tool.mp4` & `Network_analysis.mp4`.
-
-
-5. Docker compose up the database and seed the data.
-
+4. Docker compose up the database and seed the data.
     > 💡 **NOTE**
     > In case, the server doesn't have the dump data. Transfer the files using the following command:
     > ```bash
@@ -182,8 +171,8 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
     > >       - <destination-path>:/var/lib/neo4j/import
     > > ```
     > > **For this project, bydeault in [docker-compose.yml](../docker-compose.yml) file, the path to keep the database dump is inside [scripts](./scripts) folder.** 
-    <div id="database-load-command"></div>
-
+    
+    #### Database Load Command
     ```bash
     docker compose up -d --build
     docker exec -it neo4j neo4j-admin database load --from-path=/var/lib/neo4j/import/ pdnet
@@ -204,7 +193,11 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
     docker compose restart neo4j
     ```
 
-# Importing/Exporting Data
+## More Information
+
+For more information of backend and frontend, refer to the respective README files in the [backend](./backend/README.md) and [frontend](./frontend/README.md) directories.
+
+## Importing/Exporting Data
 
 1. Export the database dump from the database.
 
@@ -219,10 +212,6 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
 
 3. For ingesting data into the database, refer to the [Scripts Usage Documentation](./scripts/README.md).
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 
 ## Troubleshooting & FAQs
 
@@ -230,32 +219,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
     **Fix:**
     ```bash
-    docker exec -it frontend chmod -R 777 /usr/share/nginx/html
+    docker exec -it frontend chmod -R 755 /usr/share/nginx/html
     ```
 
-2. If you can't access the [`scripts`](./scripts) folder, you can change the folder permissions to allow yourself access to the scripts folder.
+2. If you can't access the [`scripts`](./scripts) folder while running the docker container, you can change the folder permissions to allow yourself access to the scripts folder.
 
     **Fix:**
     ```bash
     # Change the folder permissions (you can have more granular control over this by changing the numbers)
-    sudo chmod -R 777 scripts
+    sudo chmod -R 755 scripts
     ```
 
-3. Latest changes missing in the frontend.
-
-    **Fix:**
-    Pull latest changes from phase2 or relevant branch.
-    ```bash
-    git pull origin phase2
-    # OR
-    # git pull origin <branch-name>
-    ```
-
-4. If Video is not working, please Refer to [this point](#video-upload).
-
-5. If the backend is running, but application is not running, check the url of the backend in the frontend code in the following files:
-    - `frontend/index.html`
-    - `frontend/PD_stringDB.html`
-    - `frontend/PD_network.html`
-
-    You can look for ajax requests in the code and change the url to the correct one.
+3. If Video is not working, please Refer to [this point](#video-upload).

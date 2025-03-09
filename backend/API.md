@@ -2,11 +2,12 @@
 
 ## GraphQL Endpoints
 
-**GraphQL Endpoint URL:** `https://https://pdnet-rnd-apis.crecientech.com/graphql`
+**GraphQL Endpoint URL:** `https://pdnet-rnd-apis.crecientech.com/graphql`
 
 ### 1. **Fetch Gene Interactions Network**
 
-**NOTE:** This response only contains baseline network. For getting universal data, you need to request for it lazily. For headers, use [get headers endpoint](#Get Headers).
+> [!NOTE]
+> This response only contains baseline network. For getting universal data, you need to request for it lazily. For headers, use [get headers endpoint](#3-get-headers).
 
 - **Query**
 
@@ -14,21 +15,15 @@
 query GetGeneInteractions($input: InteractionInput!, $order: Int!) {
   getGeneInteractions(input: $input, order: $order) {
     genes {
-      ID
-      Gene_name
-      Description
+      ID # ensembl ID (ENSG ID) of gene
+      Gene_name # HGNC gene name
+      Description # gene description
     }
-    graphName
+    graphName # unique identifier for the graph
     links {
-      gene1 {
-        ID
-        index
-      }
-      gene2 {
-        ID
-        index
-      }
-      score
+      gene1 # ensembl ID (ENSG ID) of gene1
+      gene2 # ensembl ID (ENSG ID) of gene2
+      score # interaction score
     }
   }
 }
@@ -67,14 +62,8 @@ query GetGeneInteractions($input: InteractionInput!, $order: Int!) {
         "graphName":"8ccf297799d6466a1e465b7f03457f5c7f09ec052eab8c6e4bd642bd6f1bb48e",
         "links": [
           {
-            "gene1": {
-              "ID": "BRCA1",
-              "index": 1
-            },
-            "gene2": {
-              "ID": "TP53",
-              "index": 2
-            },
+            "gene1": "BRCA1",
+            "gene2": "TP53",
             "score": 0.95
           }
         ]
@@ -91,13 +80,14 @@ query GetGeneInteractions($input: InteractionInput!, $order: Int!) {
 
 ```graphql
 query GetGenes($config: [DataRequired!], $geneIDs: [String!]!) {
-  getGenes(config: $config, geneIDs: $geneIDs) {
-    ID
-    Gene_name
-    Description
-    Aliases
-    common
-    disease
+  genes(config: $config, geneIDs: $geneIDs) {
+    ID # ensembl ID (ENSG ID) of gene
+    Input # input gene ID (that was requested)
+    Gene_name # HGNC gene name
+    Description # gene description
+    Aliases # array of gene aliases
+    common # JSON object containing common property values (if requested)
+    disease # JSON object containing disease-specific property values (if requested)
   }
 }
 ```
@@ -106,7 +96,7 @@ query GetGenes($config: [DataRequired!], $geneIDs: [String!]!) {
 
 ```json
 {
-  "query": "query GetGenes($config: [DataRequired!], $geneIDs: [String!]!) { getGenes(config: $config, geneIDs: $geneIDs) { ID Gene_name Description common disease } }",
+  "query": "query GetGenes($config: [DataRequired!], $geneIDs: [String!]!) { genes(config: $config, geneIDs: $geneIDs) { ID Gene_name Description common disease } }",
   "variables": {
     "config": [
       {
@@ -127,14 +117,18 @@ query GetGenes($config: [DataRequired!], $geneIDs: [String!]!) {
 ```json
 {
   "data": {
-    "getGenes": [
+    "genes": [
       {
         "ID": "BRCA1",
         "Gene_name": "BRCA1",
         "Description": "Breast cancer type 1 susceptibility protein",
         "Aliases": "BRCA1, BRCC1, BROVCA1, FANCS, IRIS, PNCA4, PPP1R53, PSCP, RNF53",
-        "common": {...},
-        "disease": {...}
+        "disease": {
+          "GDA_Score_opentargets_overall_association_score": 0.5
+        },
+        "common": {
+          "pathway_Oxidative Stress Induced Senescence": 1
+        }
       },
       ...
     ]
@@ -152,7 +146,7 @@ query GetGenes($config: [DataRequired!], $geneIDs: [String!]!) {
 
 ```graphql
 query GetHeaders($disease: String) {
-  getHeaders(disease: "ALS") {
+  headers(disease: "ALS") {
     common {
       name
       description
@@ -169,7 +163,7 @@ query GetHeaders($disease: String) {
 
 ```json
 {
-  "query": "query GetHeaders($disease: String!) { getHeaders(disease: $disease) { common { name description } disease { name description } } }",
+  "query": "query GetHeaders($disease: String!) { headers(disease: $disease) { common { name description } disease { name description } } }",
   "variables": {
     "disease": "PSP"
   }
@@ -179,7 +173,7 @@ query GetHeaders($disease: String) {
 ```json
 {
  "data": {
-  "getHeaders": {
+  "headers": {
        "common": [
         {
           "name": "Database_Mendelian_GenCC_ALS",
@@ -223,34 +217,6 @@ query GetHeaders($disease: String) {
 }
 ```
 
-### 4. **Get User ID**
-
-- **Query**
-
-```graphql
-query GetUserID {
-  getUserID: String!
-}
-```
-
-- **Example Request Body**
-
-```json
-{
-  "query": "query GetUserID { getUserID: String! }"
-}
-```
-
-- **Example Response:**
-
-```json
-{
-  "data": {
-    "getUserID": "28b52fe0-a5db-48ac-87d0-bb0b90a24940",
-  }
-}
-```
-
 ## REST Endpoints
 
 ### 1. **Louvain Algorithm**
@@ -260,7 +226,7 @@ query GetUserID {
 - **Request**
 
 ```http
-GET /louvain?graphName=8ccf297799d6466a1e465b7f03457f5c7f09ec052eab8c6e4bd642bd6f1bb48e&resolution=1.0&weighted=true
+GET /louvain?graphName=8ccf297799d6466a1e465b7f03457f5c7f09ec052eab8c6e4bd642bd6f1bb48e&resolution=1.0&weighted=true&minCommunitySize=1
 ```
 
 - **Response**
