@@ -10,7 +10,7 @@ export default function Navbar() {
         <Link href={"/"} className="flex items-center gap-2">
           <Image src={logo} alt="TDP logo" className="w-40" />
           <h1 className="text-lg md:text-4xl font-bold flex items-end flex-wrap">
-            Target Biomarker Platform (TDP)
+            Target Discovery Platform (TDP)
           </h1>
         </Link>
         <Link href={"/docs/CHANGELOG"} className="text-xs self-end">
