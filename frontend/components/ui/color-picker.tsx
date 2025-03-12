@@ -18,7 +18,7 @@ export function ColorPicker({
   property: keyof GraphStore;
   className?: string;
 }) {
-  const solids = ['black', 'hotpink', 'orange', 'yellow', 'limegreen', 'aquamarine', 'darkorchid', 'red', 'blue'];
+  const solids = ['black', 'hotpink', 'orange', 'yellow', 'limegreen', 'aquamarine', 'skyblue', 'darkorchid', 'blue'];
 
   const handleNodeColorChange = (e: React.KeyboardEvent<HTMLInputElement> | string, key: keyof GraphStore) => {
     if (typeof e === 'string') {
