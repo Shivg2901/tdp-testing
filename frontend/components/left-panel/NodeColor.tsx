@@ -71,7 +71,7 @@ export function NodeColor({ onPropChange }: { onPropChange: (prop: string | Set<
             <VirtualizedCombobox
               key={radioValue}
               data={[...radioOptions.database[radioValue], ...radioOptions.user[radioValue]]}
-              className='mt-2'
+              className='mt-2 w-full'
               value={selectedNodeColorProperty}
               onChange={onPropChange}
               width={radioValue === 'TE' ? '550px' : '800px'}
@@ -80,7 +80,7 @@ export function NodeColor({ onPropChange }: { onPropChange: (prop: string | Set<
             <Combobox
               key={radioValue}
               data={[...radioOptions.database[radioValue], ...radioOptions.user[radioValue]]}
-              className='mt-2'
+              className='mt-2 w-full'
               value={selectedNodeColorProperty}
               onChange={onPropChange}
             />
