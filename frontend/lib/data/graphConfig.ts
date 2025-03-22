@@ -21,13 +21,7 @@ export const PROPERTY_TYPE_LABEL_MAPPING = {
 } as const;
 
 export const DISEASE_DEPENDENT_PROPERTIES = ['LogFC', 'GDA', 'GWAS'] as const;
-export const DISEASE_INDEPENDENT_PROPERTIES = [
-  'Pathway',
-  'Druggability',
-  'TE',
-  'Custom_Color',
-  'Database',
-] as const;
+export const DISEASE_INDEPENDENT_PROPERTIES = ['Pathway', 'Druggability', 'TE', 'Custom_Color', 'Database'] as const;
 
 export type DiseaseDependentProperties = (typeof DISEASE_DEPENDENT_PROPERTIES)[number];
 export type DiseaseIndependentProperties = (typeof DISEASE_INDEPENDENT_PROPERTIES)[number];
@@ -60,8 +54,8 @@ export const graphConfig = [
       {
         label: 'OI',
         value: 'OI',
-      }
-    ]
+      },
+    ],
   },
   {
     name: 'Order',
@@ -92,7 +86,7 @@ export const graphConfig = [
       {
         label: 'FunPPI',
         value: 'FUN_PPI',
-      }
+      },
     ],
   },
   {

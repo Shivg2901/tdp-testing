@@ -109,7 +109,7 @@ export function ColorAnalysis() {
         },
         [1, -1],
       );
-      const colorScale = scaleLinear<string>([min, 0 , max], ['green', defaultNodeColor, 'red']);
+      const colorScale = scaleLinear<string>([min, 0, max], ['green', defaultNodeColor, 'red']);
       graph.updateEachNodeAttributes((node, attr) => {
         const val = +(universalData[node]?.[userOrDiseaseIdentifier] as OtherSection)?.[selectedRadioNodeColor][
           selectedNodeColorProperty

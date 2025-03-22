@@ -1,7 +1,9 @@
 import { useStore } from '@/lib/hooks';
 import type { GraphStore } from '@/lib/interface';
+import { eventEmitter } from '@/lib/utils';
 import type { CheckedState } from '@radix-ui/react-checkbox';
 import { ChevronsUpDown, Info } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
@@ -20,6 +22,26 @@ export function NetworkStyle() {
   const showEdgeColor = useStore(state => state.showEdgeColor);
   const edgeOpacity = useStore(state => state.edgeOpacity);
   const highlightNeighborNodes = useStore(state => state.highlightNeighborNodes);
+  const [highlightSeedGenes, setHighlightSeedGenes] = useState(false);
+
+  useEffect(() => {
+    const handleHighlightChange = (enabled: boolean) => {
+      setHighlightSeedGenes(enabled);
+    };
+
+    eventEmitter.on('toggleSeedGenes', handleHighlightChange);
+
+    return () => {
+      eventEmitter.off('toggleSeedGenes', handleHighlightChange);
+    };
+  }, []);
+
+  const handleSeedCheck = (checked: CheckedState) => {
+    if (checked === 'indeterminate') return; // Prevent invalid states
+    console.log('Emitting TOGGLE_SEED_GENES event:', checked); // Debug Log ✅
+    setHighlightSeedGenes(!!checked); // Ensure boolean value
+    eventEmitter.emit('toggleSeedGenes', !!checked); // Emit as boolean
+  };
 
   const handleCheckBox = (checked: CheckedState, key: keyof GraphStore) => {
     if (checked === 'indeterminate') return;
@@ -168,6 +190,24 @@ export function NetworkStyle() {
                 </TooltipTrigger>
                 <TooltipContent className='max-w-60' align='end'>
                   Upon checked, Highlights the neighbors of the hovered genes
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+          </div>
+          <div className='flex items-center gap-2'>
+            <Checkbox
+              id='highlightSeedGenes'
+              checked={highlightSeedGenes}
+              onCheckedChange={checked => handleSeedCheck(checked)}
+            />
+            <Label htmlFor='highlightSeedGenes' className='text-xs font-semibold flex gap-1 items-center'>
+              Highlight Seed Genes
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className='shrink-0' size={12} />
+                </TooltipTrigger>
+                <TooltipContent className='max-w-60' align='end'>
+                  When checked, highlights seed genes in the network visualization.
                 </TooltipContent>
               </Tooltip>
             </Label>
