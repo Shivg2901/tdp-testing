@@ -3,13 +3,14 @@
 import { useStore } from '@/lib/hooks';
 import { Events, eventEmitter } from '@/lib/utils';
 import { SquareArrowOutUpRight } from 'lucide-react';
-import React, { createRef, useEffect } from 'react';
+import type React from 'react';
+import { createRef, useEffect, useState } from 'react';
 import { Textarea } from '../ui/textarea';
 
 export function GeneSearch() {
   const nodeSearchQuery = useStore(state => state.nodeSearchQuery);
   const suggestions = useStore(state => state.nodeSuggestions);
-  const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const textareaRef = createRef<HTMLTextAreaElement>();
   const { geneIDs } = useStore(state => state.graphConfig) ?? { geneIDs: [] };
 
@@ -37,6 +38,29 @@ export function GeneSearch() {
   };
 
   useEffect(() => {
+    let previousGenes = ''; // ✅ Local variable to track previous genes
+    const handleSeedGenesToggle = (enabled: boolean) => {
+      useStore.setState(state => {
+        if (enabled) {
+          previousGenes = state.nodeSearchQuery; // ✅ Store existing input before updating
+          return {
+            ...state,
+            nodeSearchQuery: state.nodeSearchQuery || geneIDs.join('\n'), // ✅ Show existing or default genes
+          };
+        }
+        return {
+          ...state,
+          nodeSearchQuery: previousGenes, // ✅ Restore previous input
+        };
+      });
+    };
+    eventEmitter.on('toggleSeedGenes', handleSeedGenesToggle);
+    return () => {
+      eventEmitter.off('toggleSeedGenes', handleSeedGenesToggle);
+    };
+  }, [geneIDs]); // ✅ Dependency ensures latest values
+
+  useEffect(() => {
     if (!nodeSearchQuery || nodeSearchQuery.split(/[\n,]/).pop()?.trim().length === 0) {
       useStore.setState({ nodeSuggestions: [] });
     }
@@ -45,22 +69,22 @@ export function GeneSearch() {
   return (
     <div>
       {/* <div className='flex justify-between my-1'> */}
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-        <span
-          className='text-xs underline cursor-pointer text-zinc-500'
-          onClick={() => useStore.setState({ nodeSearchQuery: geneIDs.join('\n') })}
-        >
-          #Seed Genes
-        </span>
-        {/* <button
-          type='button'
-          className='inline-flex text-xs underline cursor-pointer text-zinc-500 disabled:opacity-50 disabled:cursor-not-allowed'
-          disabled={nodeSearchQuery.length === 0}
-          onClick={() => eventEmitter.emit(Events.EXPORT, { format: 'csv' })}
-        >
-          Export <SquareArrowOutUpRight size={10} className='mt-1 ml-0.5' />
-        </button>
-      </div> */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
+      {/* <span
+         className='text-xs underline cursor-pointer text-zinc-500'
+         onClick={() => useStore.setState({ nodeSearchQuery: geneIDs.join('\n') })}
+       >
+         #Seed Genes
+       </span> */}
+      {/* <button
+         type='button'
+         className='inline-flex text-xs underline cursor-pointer text-zinc-500 disabled:opacity-50 disabled:cursor-not-allowed'
+         disabled={nodeSearchQuery.length === 0}
+         onClick={() => eventEmitter.emit(Events.EXPORT, { format: 'csv' })}
+       >
+         Export <SquareArrowOutUpRight size={10} className='mt-1 ml-0.5' />
+       </button>
+     </div> */}
       <div className='relative w-full'>
         {suggestions.length > 0 && (
           <ul className='absolute z-10 w-full mt-0.5 bg-white border border-gray-300 rounded-md shadow-sm max-h-32 overflow-auto text-xs'>

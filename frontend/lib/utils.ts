@@ -57,6 +57,7 @@ export const eventEmitter = new EventEmitter();
 export enum Events {
   ALGORITHM = 'algorithm',
   EXPORT = 'export',
+  TOGGLE_SEED_GENES = 'toggleSeedGenes',
 }
 export type EventMessage = {
   [Events.ALGORITHM]: {

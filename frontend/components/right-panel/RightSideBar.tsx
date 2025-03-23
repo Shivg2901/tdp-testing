@@ -5,7 +5,7 @@ export function RightSideBar() {
   return (
     <ScrollArea className='border-l p-2 text-xs flex flex-col h-[98vh]'>
       <NetworkLayout />
-      <NetworkAnalysis/>
+      <NetworkAnalysis />
       <NetworkStyle />
       <NetworkInfo />
       <Legend />

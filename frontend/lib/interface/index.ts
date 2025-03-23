@@ -4,7 +4,6 @@ export * from './PopUpTableProps';
 export * from './PopUpDataTableProps';
 export * from './SelectedNodeProperty';
 
-
 /**
  * GSEA data format
  * @interface Gsea
