@@ -68,6 +68,7 @@ export type EventMessage = {
     format: 'png' | 'json' | 'csv';
     all?: boolean;
   };
+  [Events.TOGGLE_SEED_GENES]: boolean;
 };
 
 export function envURL(env?: string) {

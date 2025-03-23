@@ -17,7 +17,7 @@ We have 4 different diseases — PSP, ALS, FTD and OI. Let's go through them one
 
 There are 2 types of LogFC data available in PSP disease -- Verge data and AD (Alzheimer’s Disease) data.
 
-* Verge data
+- Verge data
 
 The summary of Verge data is listed below:
 
@@ -35,37 +35,37 @@ The summary of Verge data is listed below:
 | ------- | -------------------------------------- |
 | Verge   | Diagnosis-tissue wise (PSP Vs Control) |
 
-You can use the Verge data to color or resize the nodes in the network. The name in the dropdown list of LogFC Verge data follows the format of **\{data type\}\_\{"DEGS"\}\_\{tissue Abbr.\}\_\{"log2FoldChange"\}**, for example, "PSP\_LogFC\_Verge\_DEGS\_GP\_log2FoldChange", shown as below:
+You can use the Verge data to color or resize the nodes in the network. The name in the dropdown list of LogFC Verge data follows the format of **\{data type\}\_\{"DEGS"\}\_\{tissue Abbr.\}\_\{"log2FoldChange"\}**, for example, "PSP_LogFC_Verge_DEGS_GP_log2FoldChange", shown as below:
 
 ![PSP LogFC Verge data naming convention](../../../../public/image/docs/psp-logfc-verge-data-naming-convention.png)
 
-* AD (Alzheimer’s Disease) data
+- AD (Alzheimer’s Disease) data
 
 The summary of AD data is listed below:
 
-| Brain Bank | Description | Brain Region |
-| --- | --- | --- |
-| Mayo | Study of Alzheimer’s disease and related dementias on donors from the Mayo Clinic Brain Bank and Banner Health | Cerebellum (CBE), Temporal cortex (TCX) |
-| ROSMAP | Two longitudinal studies of aging and Alzheimer’s disease with brain donation upon death - The Religious Order Study (ROS) and Memory and Aging Project (MAP) run by Rush Alzheimer’s Disease Center. | Dorsolateral prefrontal cortex (DLPFC), Posterior cingulate cortex (PCC), Anterior cingulate cortex (ACC) |
-| MSBB | Study of Alzheimer’s disease on donors from the Mount Sinai/JJ Peters VA Medical Center NIH Brain and Tissue Repository | Frontal pole (FP), Inferior frontal gyrus (IFG), Parahippocampal gyrus (PHG), Prefrontal cortex (PFC), Superior temporal gyrus (STG) |
+| Brain Bank | Description                                                                                                                                                                                           | Brain Region                                                                                                                         |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Mayo       | Study of Alzheimer’s disease and related dementias on donors from the Mayo Clinic Brain Bank and Banner Health                                                                                        | Cerebellum (CBE), Temporal cortex (TCX)                                                                                              |
+| ROSMAP     | Two longitudinal studies of aging and Alzheimer’s disease with brain donation upon death - The Religious Order Study (ROS) and Memory and Aging Project (MAP) run by Rush Alzheimer’s Disease Center. | Dorsolateral prefrontal cortex (DLPFC), Posterior cingulate cortex (PCC), Anterior cingulate cortex (ACC)                            |
+| MSBB       | Study of Alzheimer’s disease on donors from the Mount Sinai/JJ Peters VA Medical Center NIH Brain and Tissue Repository                                                                               | Frontal pole (FP), Inferior frontal gyrus (IFG), Parahippocampal gyrus (PHG), Prefrontal cortex (PFC), Superior temporal gyrus (STG) |
 
-| Brain Bank | Brain Region | Contrasts | Annotation |
-| --- | --- | --- | --- |
-| Mayo | CBE, TCX | Diagnosis-tissue wise (AD Vs Control) | ADvsCtrl |
-| MSBB | FP, IFG, PHG, PFC, STG | Diagnosis-tissue wise (AD Vs Control) | ADvsCtrl |
-| MSBB | FP, IFG, PHG, PFC, STG | Diagnosis-tissue-gender (AD Vs Control) | ADFemalevsCtrlFemale, ADMalevsCtrlMale |
-| ROSMAP | DLPFC, PCC,ACC | Diagnosis-tissue wise (AD Vs Control) | ADvsCtrl |
-| ROSMAP | DLPFC, PCC,ACC | Diagnosis-tissue-gender-age of death (AD Vs Control) | ADFemalevsCtrlFemale_agedeath, ADMalevsCtrlMale_agedeath |
+| Brain Bank | Brain Region           | Contrasts                                            | Annotation                                               |
+| ---------- | ---------------------- | ---------------------------------------------------- | -------------------------------------------------------- |
+| Mayo       | CBE, TCX               | Diagnosis-tissue wise (AD Vs Control)                | ADvsCtrl                                                 |
+| MSBB       | FP, IFG, PHG, PFC, STG | Diagnosis-tissue wise (AD Vs Control)                | ADvsCtrl                                                 |
+| MSBB       | FP, IFG, PHG, PFC, STG | Diagnosis-tissue-gender (AD Vs Control)              | ADFemalevsCtrlFemale, ADMalevsCtrlMale                   |
+| ROSMAP     | DLPFC, PCC,ACC         | Diagnosis-tissue wise (AD Vs Control)                | ADvsCtrl                                                 |
+| ROSMAP     | DLPFC, PCC,ACC         | Diagnosis-tissue-gender-age of death (AD Vs Control) | ADFemalevsCtrlFemale_agedeath, ADMalevsCtrlMale_agedeath |
 
-You can use the AD data to color or resize the nodes in the network. The name in the dropdown list of Differential Expression AD data follows the format of **\{contrast annotation}\_\{brain bank}\_\{brain region}**, for example, "ADvsCtrl\_MSBB\_FP", shown as below:
+You can use the AD data to color or resize the nodes in the network. The name in the dropdown list of Differential Expression AD data follows the format of **\{contrast annotation}\_\{brain bank}\_\{brain region}**, for example, "ADvsCtrl_MSBB_FP", shown as below:
 
 ![PSP AD data naming convention](../../../../public/image/docs/psp-ad-data-naming-convention.png)
 
 ## ALS
 
-The Differential Expression data of ALS is from [this paper](logfc.mdx#citation) [1]. According to the paper, to identify how ALS iPSMN changes compare between ALS genetic backgrounds, the effect of each genetic subgroup on gene expression is examined separately, including C9orf72 mutants, SOD1 mutants, FUS mutants,  TARDBP mutants and sporadic iPSMNs (without an identifiable ALS mutation).
+The Differential Expression data of ALS is from [this paper](logfc.mdx#citation) [1]. According to the paper, to identify how ALS iPSMN changes compare between ALS genetic backgrounds, the effect of each genetic subgroup on gene expression is examined separately, including C9orf72 mutants, SOD1 mutants, FUS mutants, TARDBP mutants and sporadic iPSMNs (without an identifiable ALS mutation).
 
-You can use the ALS data to color or resize the nodes in the network. The name in the dropdown list of the data follows the format of **\{"rnaseq"}\_\{"PMID37080969."}\_\{mutant}\_\{"fold\_change"}**, for example, "rnaseq\_PMID37080969.tardbp\_fold\_change", shown as below:
+You can use the ALS data to color or resize the nodes in the network. The name in the dropdown list of the data follows the format of **\{"rnaseq"}\_\{"PMID37080969."}\_\{mutant}\_\{"fold_change"}**, for example, "rnaseq_PMID37080969.tardbp_fold_change", shown as below:
 
 ![ALS Differential Expression data naming convention](../../../../public/image/docs/als-differential-expression-data-naming-convention.png)
 
@@ -75,8 +75,7 @@ For Differential Expression data for FTD, we provide log-fold change between FTD
 
 ## OI
 
-
-***
+---
 
 #### Citation
 

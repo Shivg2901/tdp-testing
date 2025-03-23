@@ -14,7 +14,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { graphConfig } from '@/lib/data';
@@ -23,7 +22,6 @@ import type { GeneVerificationData, GeneVerificationVariables, GraphConfigForm }
 import { distinct } from '@/lib/utils';
 import { useLazyQuery } from '@apollo/client';
 import { AlertTriangle, Loader } from 'lucide-react';
-import { Link } from 'next-view-transitions';
 import React, { type ChangeEvent } from 'react';
 import { toast } from 'sonner';
 
@@ -61,7 +59,7 @@ export default function Home() {
     const { seedGenes } = formData;
     const geneIDs = distinct(seedGenes.split(/[,|\n]/).map(gene => gene.trim().toUpperCase())).filter(Boolean);
     setGeneIDs(geneIDs);
-    const { data, error } = await verifyGenes({
+    const { error } = await verifyGenes({
       variables: { geneIDs },
     });
     if (error) {

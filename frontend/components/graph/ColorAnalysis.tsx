@@ -5,7 +5,7 @@ import { useStore } from '@/lib/hooks';
 import type { EdgeAttributes, NodeAttributes, OtherSection } from '@/lib/interface';
 import { useSigma } from '@react-sigma/core';
 import { scaleLinear } from 'd3-scale';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export function ColorAnalysis() {
   const selectedRadioNodeColor = useStore(state => state.selectedRadioNodeColor);
@@ -16,17 +16,12 @@ export function ColorAnalysis() {
   const diseaseName = useStore(state => state.diseaseName);
   const showEdgeColor = useStore(state => state.showEdgeColor);
   const radioOptions = useStore(state => state.radioOptions);
-  const [minScore, setMinScore] = useState(0);
   const edgeOpacity = useStore(state => state.edgeOpacity);
 
   useEffect(() => {
-    setMinScore(Number(JSON.parse(localStorage.getItem('graphConfig') ?? '{}').minScore) ?? 0);
-  }, []);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: not required
-  useEffect(() => {
     if (!graph) return;
     if (showEdgeColor) {
+      const minScore = Number(JSON.parse(localStorage.getItem('graphConfig') ?? '{}').minScore) ?? 0;
       const colorScale = scaleLinear<string>([minScore, 1], ['yellow', 'red']);
       graph.updateEachEdgeAttributes((_edge, attr) => {
         if (attr.score) attr.color = colorScale(attr.score).replace(/^rgb/, 'rgba').replace(/\)/, `, ${edgeOpacity})`);
@@ -39,9 +34,8 @@ export function ColorAnalysis() {
         return attr;
       });
     }
-  }, [showEdgeColor, edgeOpacity]);
+  }, [showEdgeColor, edgeOpacity, graph]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: not required
   useEffect(() => {
     if (!selectedRadioNodeColor && graph) {
       useStore.setState({ selectedNodeColorProperty: '' });
@@ -50,9 +44,8 @@ export function ColorAnalysis() {
         return attr;
       });
     }
-  }, [selectedRadioNodeColor]);
+  }, [graph, selectedRadioNodeColor]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: not required
   useEffect(() => {
     if (!selectedNodeColorProperty || !graph || !selectedRadioNodeColor) return;
     const isUserProperty =
@@ -215,7 +208,8 @@ export function ColorAnalysis() {
         return attr;
       });
     }
-  }, [selectedNodeColorProperty, graph, universalData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedNodeColorProperty, graph, universalData, defaultNodeColor]);
 
   return null;
 }

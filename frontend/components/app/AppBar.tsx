@@ -1,6 +1,6 @@
 import { SquareDashedMousePointer } from 'lucide-react';
 import { Suspense, useState } from 'react';
-import { Export, FileName } from '.';
+import { FileName } from '.';
 import { Input } from '../ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
@@ -11,7 +11,6 @@ export function AppBar() {
       <Tooltip>
         <TooltipTrigger className='relative'>
           {visible && (
-            // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
             <span className='absolute -bottom-2 flex size-2.5' onClick={() => setVisible(false)}>
               <span className='absolute inline-flex h-[150%] w-[150%] z-50 animate-ping rounded-full -bottom-0.5 bg-sky-400 opacity-75' />
               <span className='relative inline-flex size-2.5 rounded-full bg-sky-500' />
@@ -54,7 +53,6 @@ export function AppBar() {
       <Suspense fallback={<Input className='text-sm font-semibold max-w-fit' value={'Untitled'} />}>
         <FileName />
       </Suspense>
-      <Export />
     </div>
   );
 }

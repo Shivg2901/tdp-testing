@@ -1,5 +1,4 @@
 import tutorialVideos from '@/lib/data/tutorial-video.json';
-import { Link } from 'next-view-transitions';
 
 export default function TutorialVideoPage() {
   return (

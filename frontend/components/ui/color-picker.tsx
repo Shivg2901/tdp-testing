@@ -50,11 +50,10 @@ export function ColorPicker({
       <PopoverContent className='w-36 md:w-64' align='end'>
         <div className='flex flex-wrap'>
           {solids.map(s => (
-            // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
             <div
               key={s}
               style={{ background: s }}
-              onClick={e => handleNodeColorChange(s, property)}
+              onClick={() => handleNodeColorChange(s, property)}
               className='rounded-md h-6 w-6 cursor-pointer hover:scale-105'
             />
           ))}

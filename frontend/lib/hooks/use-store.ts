@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { GraphStore } from '../interface';
 import { initRadioOptions } from '../utils';
 
-export const useStore = create<GraphStore>(set => ({
+export const useStore = create<GraphStore>(() => ({
   projectTitle: 'Untitled',
   nodeSearchQuery: '',
   nodeSuggestions: [],

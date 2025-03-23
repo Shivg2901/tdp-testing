@@ -8,11 +8,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/componen
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React from 'react';
 
-export default function NetworkLayoutPage({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function NetworkLayoutPage({ children }: { children: React.ReactNode }) {
   const [leftSidebar, setLeftSidebar] = React.useState<boolean>(true);
   const [rightSidebar, setRightSidebar] = React.useState<boolean>(true);
 

@@ -144,9 +144,16 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
     cp frontend/.env.example frontend/.env
     ```
 
+3. **[FOR DEVELOPMENT ONLY]** Install all dependencies in frontend and backend repository. Also, install the dependencies in the root directory to setup git hooks and lint-staging along with commitlinting.
+
+    ```bash
+    npm install
+    cd frontend && npm install && cd ..
+    cd backend && npm install && cd ..
+    ```
 
 ##### Video Upload
-3. Download the video files from the following link and place them inside the [`frontend/public/video`](./frontend/public/video/) folder.
+4. Download the video files from the following link and place them inside the [`frontend/public/video`](./frontend/public/video/) folder.
 
     > [!NOTE]
     > This is not the most conventional & intuitive place to keep the videos, but this was hard-coded in the frontend code, so directed to keep the videos in this folder. This will soon be changed and once done will be updated in the manual. Also, this workflow will be gradually improved to avoid these steps, but currently the video size exceeds 100MB limit of commit size, so this is the workaround.
@@ -154,7 +161,7 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
     [Video Files](https://drive.google.com/drive/u/2/folders/1ZnQ7802kUhu9uGyD7rXONvULb4ELSv4l)
     
 
-4. Docker compose up the database and seed the data.
+5. Docker compose up the database and seed the data.
     > 💡 **NOTE**
     > In case, the server doesn't have the dump data. Transfer the files using the following command:
     > ```bash

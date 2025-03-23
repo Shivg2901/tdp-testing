@@ -4,7 +4,7 @@ import { FolderUp } from 'lucide-react';
 import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 
-const exportOptions: Array<'json' | 'csv' | 'png'> = ['json', 'csv', 'png'];
+const exportOptions = ['csv', 'png'] as const;
 
 export function Export() {
   return (

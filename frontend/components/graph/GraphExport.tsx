@@ -30,7 +30,6 @@ export function GraphExport({ highlightedNodesRef }: { highlightedNodesRef?: Rea
     element.remove();
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     eventEmitter.on(Events.EXPORT, ({ format, all }: EventMessage[Events.EXPORT]) => {
       switch (format) {
@@ -67,7 +66,7 @@ export function GraphExport({ highlightedNodesRef }: { highlightedNodesRef?: Rea
                 : 'common';
 
           const data = unparse(
-            (all ? sigma.getGraph().nodes() : Array.from(highlightedNodesRef?.current!)).map(nodeId => {
+            (all ? sigma.getGraph().nodes() : Array.from(highlightedNodesRef?.current ?? [])).map(nodeId => {
               const universalProperties: Record<string, string> = {};
               if (selectedRadioNodeColor) {
                 if (typeof selectedNodeColorProperty === 'string') {
@@ -123,6 +122,7 @@ export function GraphExport({ highlightedNodesRef }: { highlightedNodesRef?: Rea
         }
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return null;

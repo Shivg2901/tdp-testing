@@ -27,7 +27,6 @@ export function GraphEvents({
   const trieRef = useRef(new Trie<{ key: string; value: string }>());
   const totalNodes = useStore(state => state.totalNodes);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     const nodeArr = sigma.getGraph().mapNodes((node, attributes) => ({
       key: attributes.label,
@@ -35,11 +34,10 @@ export function GraphEvents({
     })) as { key: string; value: string }[];
     if (!Array.isArray(nodeArr)) return;
     trieRef.current = Trie.fromArray(nodeArr, 'key');
-  }, [totalNodes]);
+  }, [sigma, totalNodes]);
 
   const { gotoNode } = useCamera();
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     const graph = sigma.getGraph();
     if (trieRef.current.size === 0) return;
@@ -68,6 +66,7 @@ export function GraphEvents({
       if (++count === geneNames.size) gotoNode(node, { duration: 100 });
     }
     highlightedNodesRef.current = geneNames;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeSearchQuery, gotoNode, sigma]);
 
   useEffect(() => {
@@ -302,6 +301,7 @@ export function GraphEvents({
         });
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registerEvents, sigma, draggedNode, handleMouseUp, handleMouseDown, handleMouseMove]);
 
   const highlightNeighborNodes = useStore(state => state.highlightNeighborNodes);

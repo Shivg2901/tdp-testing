@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 @layer base {
-	:root {
-		--border: 180 25% 70%;
-	}
-	* {
-		@apply border-border;
-	}
+  :root {
+    --border: 180 25% 70%;
+  }
+  * {
+    @apply border-border;
+  }
 }

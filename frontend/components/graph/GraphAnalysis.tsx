@@ -22,7 +22,6 @@ export function GraphAnalysis({ highlightedNodesRef }: { highlightedNodesRef?: R
     {},
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     let edgeCount = 0;
     graph.updateEachEdgeAttributes((_edge, attr) => {
@@ -35,14 +34,13 @@ export function GraphAnalysis({ highlightedNodesRef }: { highlightedNodesRef?: R
       return attr;
     });
     useStore.setState({ totalEdges: edgeCount });
-  }, [radialAnalysis.edgeWeightCutOff]);
+  }, [graph, radialAnalysis.edgeWeightCutOff]);
 
   const nodeDegreeProperty = useStore(state => state.radialAnalysis.nodeDegreeProperty);
   const universalData = useStore(state => state.universalData);
 
   const [fetchUniversal] = useLazyQuery<GeneUniversalData, GeneUniversalDataVariables>(GENE_UNIVERSAL_QUERY());
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     (async () => {
       let nodeCount = 0;
@@ -56,7 +54,7 @@ export function GraphAnalysis({ highlightedNodesRef }: { highlightedNodesRef?: R
         }).then(({ data }) => {
           const minMax = [Number.POSITIVE_INFINITY, 0];
           for (const gene of data?.genes ?? []) {
-            const value = gene.common?.[`TE_${nodeDegreeProperty}`]!;
+            const value = gene.common?.[`TE_${nodeDegreeProperty}`];
             if (value) {
               universalData[gene.ID][userOrCommonIdentifier].TE[nodeDegreeProperty] = value;
               const num = +value;
@@ -95,9 +93,9 @@ export function GraphAnalysis({ highlightedNodesRef }: { highlightedNodesRef?: R
       }, 0);
       useStore.setState({ totalNodes: nodeCount, totalEdges: edgeCount });
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [radialAnalysis.nodeDegreeCutOff, nodeDegreeProperty]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (radialAnalysis.hubGeneEdgeCount < 1) {
       graph.updateEachNodeAttributes((node, attr) => {
@@ -121,7 +119,8 @@ export function GraphAnalysis({ highlightedNodesRef }: { highlightedNodesRef?: R
         return attr;
       });
     }
-  }, [radialAnalysis.hubGeneEdgeCount, highlightedNodesRef?.current]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [radialAnalysis.hubGeneEdgeCount, highlightedNodesRef]);
 
   async function renewSession() {
     const res = await fetch(`${envURL(process.env.NEXT_PUBLIC_BACKEND_URL)}/algorithm/renew-session`, {
@@ -135,7 +134,6 @@ export function GraphAnalysis({ highlightedNodesRef }: { highlightedNodesRef?: R
 
   const searchParams = useSearchParams();
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     eventEmitter.on(Events.ALGORITHM, async ({ name, parameters }: EventMessage[Events.ALGORITHM]) => {
       if (name === 'None') {
@@ -233,6 +231,7 @@ export function GraphAnalysis({ highlightedNodesRef }: { highlightedNodesRef?: R
         })();
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

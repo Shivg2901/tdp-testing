@@ -34,7 +34,6 @@ export default function PopUpDataTable<E, F>({
     element.remove();
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     // esc key to close the dialog
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -42,6 +41,7 @@ export default function PopUpDataTable<E, F>({
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -17,7 +17,11 @@ export function NetworkLayout() {
   const forceSettings = useStore(state => state.forceSettings);
 
   const handleGraphAnimation = (checked: boolean) => {
-    checked ? start() : stop();
+    if (checked) {
+      start();
+    } else {
+      stop();
+    }
   };
 
   const updateForceSetting = (value: number[] | string, key: keyof ForceSettings) => {

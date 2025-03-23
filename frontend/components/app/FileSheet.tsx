@@ -265,7 +265,7 @@ export function FileSheet() {
                 {isDragActive ? (
                   <p>Drop the files here ...</p>
                 ) : (
-                  <p>Drag 'n' drop some files here, or click to select files</p>
+                  <p>Drag &apos;n&apos; drop some files here, or click to select files</p>
                 )}
               </div>
               {uploadedFiles.length ? (
@@ -338,7 +338,8 @@ export function FileSheet() {
         </Button>
       </div>
       <div className='text-xs text-gray-500 italic mt-2'>
-        <b>NOTE:</b> The uploaded files will be stored in your browser's local storage and is not shared with anyone.
+        <b>NOTE:</b> The uploaded files will be stored in your browser&apos;s local storage and is not shared with
+        anyone.
       </div>
     </div>
   );

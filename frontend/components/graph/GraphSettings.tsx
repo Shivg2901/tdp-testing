@@ -49,7 +49,6 @@ export function GraphSettings({ clickedNodesRef }: { clickedNodesRef?: React.Mut
     });
   }, [defaultLabelSize, setSettings]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (!sigma || !defaultNodeSize) return;
     if (selectedRadioNodeSize && selectedNodeSizeProperty) {
@@ -64,9 +63,9 @@ export function GraphSettings({ clickedNodesRef }: { clickedNodesRef?: React.Mut
         return attr;
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultNodeSize, sigma]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     const graph = sigma.getGraph();
     setSettings({
@@ -103,6 +102,7 @@ export function GraphSettings({ clickedNodesRef }: { clickedNodesRef?: React.Mut
         return data;
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hoveredNode, setSettings, sigma]);
 
   return null;

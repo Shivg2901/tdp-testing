@@ -4,6 +4,7 @@ import type { Column, ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown } from 'lucide-react';
 
 function headerHelper<TData>(columnName: string) {
+  // eslint-disable-next-line react/display-name
   return ({ column }: { column: Column<TData> }) => {
     return (
       <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>

@@ -83,3 +83,4 @@ export const SigmaContainer = React.forwardRef<
     </_SigmaContainer>
   );
 });
+SigmaContainer.displayName = 'Client_SigmaContainer';

@@ -15,7 +15,6 @@ export function SizeAnalysis() {
   const diseaseName = useStore(state => state.diseaseName);
   const radioOptions = useStore(state => state.radioOptions);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (!selectedRadioNodeSize && graph) {
       useStore.setState({ selectedNodeSizeProperty: '' });
@@ -24,9 +23,9 @@ export function SizeAnalysis() {
         return attr;
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRadioNodeSize]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (!selectedNodeSizeProperty || !graph || !selectedRadioNodeSize) return;
     const isUserProperty =
@@ -152,6 +151,7 @@ export function SizeAnalysis() {
         return attr;
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNodeSizeProperty, graph, universalData, defaultNodeSize]);
 
   return null;

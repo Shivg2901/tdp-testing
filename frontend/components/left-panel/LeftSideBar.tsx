@@ -23,7 +23,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { redirect } from 'next/navigation';
 import React, { useEffect, useRef } from 'react';
 import { GeneSearch, NodeColor, NodeSize } from '.';
-import { FileSheet } from '../app';
+import { Export, FileSheet } from '../app';
 import { RadialAnalysis } from '../right-panel';
 import { Combobox } from '../ui/combobox';
 import { Label } from '../ui/label';
@@ -50,7 +50,6 @@ export function LeftSideBar() {
     { returnPartialData: true },
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Fetchdata dependency is redundant
   useEffect(() => {
     if (!diseaseName) return;
     fetchHeader({
@@ -96,6 +95,7 @@ export function LeftSideBar() {
       .catch(err => {
         console.error(err);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diseaseName]);
 
   useEffect(() => {
@@ -228,9 +228,10 @@ export function LeftSideBar() {
       <NodeColor onPropChange={val => handlePropChange(val, 'color')} />
       <NodeSize onPropChange={val => handlePropChange(val, 'size')} />
       <RadialAnalysis />
-      <div className='flex flex-col space-y-2 mb-2'>
+      <div className='flex flex-col space-y-2 mb-6'>
         <GeneSearch />
         <FileSheet />
+        <Export />
       </div>
     </ScrollArea>
   );

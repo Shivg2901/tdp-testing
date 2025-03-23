@@ -55,7 +55,6 @@ export function LoadGraph() {
   const [fetchFileData] = useLazyQuery<GeneVerificationData, GeneVerificationVariables>(GENE_VERIFICATION_QUERY);
   const [showWarning, setShowWarning] = React.useState<boolean>(false);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     const graph = new Graph<NodeAttributes, EdgeAttributes>({
       type: 'directed',
@@ -205,7 +204,8 @@ export function LoadGraph() {
         }
       }
     })();
-  }, [loadGraph, loading, error, fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadGraph, loading, fetchData]);
 
   return (
     <>

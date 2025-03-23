@@ -1,5 +1,3 @@
-const e = require("express");
-
 module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -17,7 +15,12 @@ module.exports = {
     node: true,
     jest: true,
   },
-  ignorePatterns: ['.eslintrc.js','node_modules', 'dist','src/gql/gql.schema.ts'],
+  ignorePatterns: [
+    '.eslintrc.js',
+    'node_modules',
+    'dist',
+    'src/gql/gql.schema.ts',
+  ],
   rules: {
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',

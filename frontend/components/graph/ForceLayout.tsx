@@ -38,7 +38,6 @@ export function ForceLayout() {
     });
   }, [sigma]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (!sigma) return;
     (sigma as EventEmitter).once('loaded', () => {
@@ -72,9 +71,9 @@ export function ForceLayout() {
         },
       });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sigma, tick]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (!simulation.current || !edges.current) return;
     simulation.current.force(
@@ -85,6 +84,7 @@ export function ForceLayout() {
     );
     simulation.current.force('collide', forceCollide(defaultNodeSize * 8));
     simulation.current.alpha(0.3).restart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
 
   return null;

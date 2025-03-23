@@ -4,11 +4,7 @@ import { Link } from 'next-view-transitions';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
-export default function SideBarLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function SideBarLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (

@@ -24,11 +24,11 @@ export function RadialAnalysis() {
     useStore.setState({ radialAnalysis: { ...radialAnalysis, [key]: value } });
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     const minScore = Number(JSON.parse(localStorage.getItem('graphConfig') ?? '{}').minScore) ?? 0;
     setMinScore(minScore);
     updateRadialAnalysis(minScore, 'edgeWeightCutOff');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

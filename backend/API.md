@@ -33,7 +33,7 @@ query GetGeneInteractions($input: InteractionInput!, $order: Int!) {
 
 ```json
 {
-  "query": "query GetGeneInteractions($input: InteractionInput!, $order: Int!) { getGeneInteractions(input: $input, order: $order) { genes { ID Gene_name Description } graphName links { gene1 { ID index } gene2 { ID index } score } } }",
+  "query": "query GetGeneInteractions($input: InteractionInput!, $order: Int!) { getGeneInteractions(input: $input, order: $order) { genes { ID Gene_name Description } graphName links { gene1 gene2 score } } }",
   "variables": {
     "input": {
       "geneIDs": ["BRCA1", "TP53"],
@@ -221,7 +221,7 @@ query GetHeaders($disease: String) {
 
 ### 1. **Louvain Algorithm**
 
-- **Base Endpoint:** `https://https://pdnet-rnd-apis.crecientech.com/`
+- **Base Endpoint:** `https://pdnet-rnd-apis.crecientech.com/algorithm`
 
 - **Request**
 
@@ -268,7 +268,7 @@ GET /louvain?graphName=8ccf297799d6466a1e465b7f03457f5c7f09ec052eab8c6e4bd642bd6
 
 ### 2. **GSEA Analysis**
 
-- **Base Endpoint:** `https://https://pdnet-rnd-papis.crecientech.com/`
+- **Base Endpoint:** `https://pdnet-rnd-papis.crecientech.com/`
 
 - **Request**
 

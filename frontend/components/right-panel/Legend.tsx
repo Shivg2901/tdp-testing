@@ -10,7 +10,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/colla
 
 export function Legend() {
   const selectedRadioNodeColor = useStore(state => state.selectedRadioNodeColor);
-  const selectedNodeColorProperty = useStore(state => state.selectedNodeColorProperty);
   const showEdgeColor = useStore(state => state.showEdgeColor);
   const [minScore, setMinScore] = useState(0);
   const defaultNodeColor = useStore(state => state.defaultNodeColor);

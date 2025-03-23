@@ -2,7 +2,6 @@
 
 import { useStore } from '@/lib/hooks';
 import { Events, eventEmitter } from '@/lib/utils';
-import { SquareArrowOutUpRight } from 'lucide-react';
 import type React from 'react';
 import { createRef, useEffect, useState } from 'react';
 import { Textarea } from '../ui/textarea';
@@ -45,7 +44,7 @@ export function GeneSearch() {
           previousGenes = state.nodeSearchQuery; // ✅ Store existing input before updating
           return {
             ...state,
-            nodeSearchQuery: state.nodeSearchQuery || geneIDs.join('\n'), // ✅ Show existing or default genes
+            nodeSearchQuery: geneIDs.join('\n'), // ✅ Show seed genes
           };
         }
         return {
@@ -54,9 +53,9 @@ export function GeneSearch() {
         };
       });
     };
-    eventEmitter.on('toggleSeedGenes', handleSeedGenesToggle);
+    eventEmitter.on(Events.TOGGLE_SEED_GENES, handleSeedGenesToggle);
     return () => {
-      eventEmitter.off('toggleSeedGenes', handleSeedGenesToggle);
+      eventEmitter.off(Events.TOGGLE_SEED_GENES, handleSeedGenesToggle);
     };
   }, [geneIDs]); // ✅ Dependency ensures latest values
 
@@ -89,7 +88,6 @@ export function GeneSearch() {
         {suggestions.length > 0 && (
           <ul className='absolute z-10 w-full mt-0.5 bg-white border border-gray-300 rounded-md shadow-sm max-h-32 overflow-auto text-xs'>
             {suggestions.map((suggestion, index) => (
-              // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
               <li
                 key={suggestion}
                 className={`px-2 py-1 cursor-pointer hover:bg-gray-100 ${index === selectedIndex ? 'bg-gray-100' : ''}`}

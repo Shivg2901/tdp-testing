@@ -1,0 +1,48 @@
+{
+  "name": "tdp-platform",
+  "version": "1.0.0",
+  "scripts": {
+    "prepare": "husky || true",
+    "commit": "git-cz"
+  },
+  "workspaces": [
+    "frontend",
+    "backend",
+    "scripts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Crecientech-Pvt-Ltd/tdp-platform.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Crecientech-Pvt-Ltd/tdp-platform/issues"
+  },
+  "homepage": "https://github.com/Crecientech-Pvt-Ltd/tdp-platform#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "@commitlint/cz-commitlint": "^19.8.0",
+    "commitizen": "^4.3.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "@commitlint/cz-commitlint"
+    }
+  },
+  "lint-staged": {
+    "frontend/**/*.{js,jsx,ts,tsx}": [
+      "npm run eslint -w frontend",
+      "npm run prettier -w frontend"
+    ],
+    "backend/**/*.{js,ts}": [
+      "npm run eslint -w backend",
+      "npm run prettier -w backend"
+    ]
+  }
+}
