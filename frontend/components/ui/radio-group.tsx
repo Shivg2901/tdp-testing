@@ -1,7 +1,6 @@
 'use client';
 
 import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
-import { CheckIcon } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
@@ -19,19 +18,16 @@ const RadioGroupItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>
 >(({ className, ...props }, ref) => {
   return (
-  <RadioGroupPrimitive.Item
-    ref={ref}
-    className={cn(
-      'relative aspect-square h-4 w-4 rounded-full border border-primary text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
-      className,
-    )}
-    {...props}
-  >
-    <RadioGroupPrimitive.Indicator
-      className="absolute inset-0 h-full w-full bg-primary border border-secondary rounded-full"
-    />
-  </RadioGroupPrimitive.Item>
-
+    <RadioGroupPrimitive.Item
+      ref={ref}
+      className={cn(
+        'relative aspect-square h-4 w-4 rounded-full border border-primary text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+        className,
+      )}
+      {...props}
+    >
+      <RadioGroupPrimitive.Indicator className='absolute inset-0 h-full w-full bg-primary border border-secondary rounded-full' />
+    </RadioGroupPrimitive.Item>
   );
 });
 RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName;
