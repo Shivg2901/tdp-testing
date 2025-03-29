@@ -59,13 +59,13 @@ const VirtualizedCommand = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                className='bg-transparent  hover:bg-muted cursor-pointer p-2 rounded border shadow'
+                className='bg-transparent hover:bg-muted cursor-pointer p-2 rounded border shadow'
                 onClick={() => onSelectOption?.(filteredOptions.slice(0, 50).map(getProperty))}
               >
                 <ListCheck className='h-4 w-4 text-black' />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Select all (only first 50 items are selected at max)</TooltipContent>
+            <TooltipContent className='text-white'>Select all (only first 50 items are selected at max)</TooltipContent>
           </Tooltip>
         )}
       </CommandInput>
@@ -108,7 +108,7 @@ const VirtualizedCommand = ({
                       <TooltipTrigger asChild>
                         <Info className='h-4 w-4 ml-2 cursor-pointer' />
                       </TooltipTrigger>
-                      <TooltipContent side='left' align='start' className='max-w-48'>
+                      <TooltipContent side='left' align='start' className='max-w-48 text-white'>
                         {option.description}
                       </TooltipContent>
                     </Tooltip>
@@ -152,10 +152,13 @@ export function VirtualizedCombobox({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant='outline'
+          variant='oldtool'
           role='combobox'
           aria-expanded={open}
-          className={cn('w-[200px] justify-between text-ellipsis text-wrap break-words h-9', className)}
+          className={cn(
+            'w-[200px] border justify-between text-ellipsis text-wrap break-words h-9 bg-white text-black',
+            className,
+          )}
         >
           <span className='truncate'>
             {multiselect && value instanceof Set
@@ -164,7 +167,7 @@ export function VirtualizedCombobox({
                 : searchPlaceholder
               : value || searchPlaceholder}
           </span>
-          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0' />
         </Button>
       </PopoverTrigger>
       <PopoverContent align={align} className={cn(`w-[${width || '200px'}] p-0`, className)}>

@@ -39,17 +39,17 @@ export function NetworkStyle() {
   };
 
   return (
-    <Collapsible defaultOpen className='mb-2 border p-2 rounded shadow text-xs'>
-      <div className='flex items-center justify-between w-full'>
-        <p className='font-bold'>Network Style</p>
+    <Collapsible defaultOpen className=''>
+      <div className='flex items-center justify-between w-full bg-primary p-2'>
+        <p className='font-bold text-white'>Network Style</p>
         <CollapsibleTrigger asChild>
-          <Button type='button' variant='outline' size='icon' className='w-6 h-6'>
+          <Button type='button' variant='oldtool' size='icon' className='w-6 h-6'>
             <ChevronsUpDown size={15} />
           </Button>
         </CollapsibleTrigger>
       </div>
-      <CollapsibleContent className='flex flex-col gap-2'>
-        <div className='flex space-x-2 items-center'>
+      <CollapsibleContent className='flex flex-col gap-2 p-1'>
+        <div className='flex space-x-2 items-center p-3'>
           <div className='flex flex-col space-y-1 w-full'>
             <Label htmlFor='defaultNodeSize' className='text-xs font-semibold'>
               Node Size
@@ -66,7 +66,7 @@ export function NetworkStyle() {
           </div>
           <Input
             type='number'
-            className='w-16 h-8'
+            className='w-16'
             min={1}
             max={50}
             step={1}
@@ -74,7 +74,7 @@ export function NetworkStyle() {
             onChange={e => handleDefaultChange(Number.parseInt(e.target.value), 'defaultNodeSize')}
           />
         </div>
-        <div className='flex space-x-2 items-center'>
+        <div className='flex space-x-2 items-center px-3'>
           <div className='flex flex-col space-y-1 w-full'>
             <Label htmlFor='defaultLabelSize' className='text-xs font-semibold'>
               Node Label Size
@@ -91,7 +91,7 @@ export function NetworkStyle() {
           </div>
           <Input
             type='number'
-            className='w-16 h-8'
+            className='w-16'
             min={1}
             max={50}
             step={1}
@@ -99,7 +99,7 @@ export function NetworkStyle() {
             onChange={e => handleDefaultChange(Number.parseInt(e.target.value), 'defaultLabelSize')}
           />
         </div>
-        <div className='flex space-x-2 items-center'>
+        <div className='flex space-x-2 items-center p-3'>
           <div className='flex flex-col space-y-1 w-full'>
             <Label htmlFor='defaultLabelDensity' className='text-xs font-semibold flex gap-1 items-center'>
               Label Density
@@ -107,7 +107,7 @@ export function NetworkStyle() {
                 <TooltipTrigger asChild>
                   <Info className='shrink-0' size={12} />
                 </TooltipTrigger>
-                <TooltipContent className='max-w-60' align='end'>
+                <TooltipContent className='max-w-60 text-white' align='end'>
                   Change the density of the node/edge labels in the network
                 </TooltipContent>
               </Tooltip>
@@ -124,7 +124,7 @@ export function NetworkStyle() {
           </div>
           <Input
             type='number'
-            className='w-16 h-8'
+            className='w-16 pr-0'
             min={0}
             max={10}
             step={0.1}
@@ -133,7 +133,7 @@ export function NetworkStyle() {
           />
         </div>
         <hr />
-        <div className='flex flex-col gap-2'>
+        <div className='flex flex-col gap-2 p-3'>
           <div className='flex items-center gap-2'>
             <Checkbox
               id='showEdgeColor'
@@ -156,7 +156,7 @@ export function NetworkStyle() {
                 <TooltipTrigger asChild>
                   <Info className='shrink-0' size={12} />
                 </TooltipTrigger>
-                <TooltipContent className='max-w-60' align='end'>
+                <TooltipContent className='max-w-60 text-white' align='end'>
                   Upon checked, Highlights the neighbors of the hovered genes
                 </TooltipContent>
               </Tooltip>
@@ -174,14 +174,14 @@ export function NetworkStyle() {
                 <TooltipTrigger asChild>
                   <Info className='shrink-0' size={12} />
                 </TooltipTrigger>
-                <TooltipContent className='max-w-60' align='end'>
+                <TooltipContent className='max-w-60 text-white' align='end'>
                   When checked, highlights seed genes in the network visualization.
                 </TooltipContent>
               </Tooltip>
             </Label>
           </div>
         </div>
-        <div>
+        <div className='p-3'>
           <Label htmlFor='edgeOpacity' className='text-xs font-semibold'>
             Edge Opacity
           </Label>
@@ -198,18 +198,18 @@ export function NetworkStyle() {
               type='number'
               min={0}
               max={1}
-              step={10}
+              step={0.1}
               value={edgeOpacity}
               onChange={e => handleDefaultChange(Number(e.target.value), 'edgeOpacity')}
-              className='w-16'
+              className='w-16 pr-1.5'
             />
           </div>
         </div>
-        <div>
+        <div className='p-3'>
           <Label htmlFor='defaultNodeColor' className='text-xs font-semibold'>
             Node Color
           </Label>
-          <ColorPicker color={defaultNodeColor} property='defaultNodeColor' className='w-full' />
+          <ColorPicker color={defaultNodeColor} property='defaultNodeColor' className='w-full mt-2' />
         </div>
       </CollapsibleContent>
     </Collapsible>

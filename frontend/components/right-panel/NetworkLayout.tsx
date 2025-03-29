@@ -33,32 +33,32 @@ export function NetworkLayout() {
     });
   };
   return (
-    <Collapsible defaultOpen className='mb-2 border p-2 rounded shadow'>
-      <div className='flex items-center justify-between w-full'>
-        <p className='font-bold'>Network Layout</p>
+    <Collapsible defaultOpen className='text-xs'>
+      <div className='flex items-center justify-between w-full p-2 bg-primary'>
+        <p className='font-bold text-white'>Network Layout</p>
         <CollapsibleTrigger asChild>
-          <Button type='button' variant='outline' size='icon' className='w-6 h-6'>
+          <Button type='button' variant='oldtool' size='icon' className='w-6 h-6'>
             <ChevronsUpDown size={15} />
           </Button>
         </CollapsibleTrigger>
       </div>
-      <CollapsibleContent className='flex flex-col gap-2'>
-        <div className='flex items-center gap-2'>
+      <CollapsibleContent className='flex flex-col gap-2 p-1'>
+        <div className='flex items-center gap-2 p-3'>
           <Label htmlFor='network-animation-control' className='text-xs font-semibold'>
             Animation
           </Label>
           <Switch id='network-animation-control' defaultChecked onCheckedChange={handleGraphAnimation} />
         </div>
         {forceLayoutOptions.map(option => (
-          <div key={option.key} className='flex space-x-2 items-center'>
-            <div className='flex flex-col space-y-2 w-full'>
+          <div key={option.key} className='flex space-x-2 items-center px-3 pb-2'>
+            <div className='flex flex-col space-y-1 w-full'>
               <Label htmlFor={option.key} className='text-xs font-semibold flex gap-1 items-center'>
                 {option.label}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Info className='shrink-0' size={12} />
                   </TooltipTrigger>
-                  <TooltipContent className='max-w-60' align='end'>
+                  <TooltipContent className='max-w-60 text-white' align='end'>
                     {option.tooltip}
                   </TooltipContent>
                 </Tooltip>
@@ -75,7 +75,7 @@ export function NetworkLayout() {
             </div>
             <Input
               type='number'
-              className='w-16 h-8'
+              className='w-16 pr-0'
               min={option.min}
               max={option.max}
               step={option.step}
