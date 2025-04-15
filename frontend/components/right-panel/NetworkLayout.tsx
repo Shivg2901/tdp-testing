@@ -25,12 +25,12 @@ export function NetworkLayout() {
   };
 
   const updateForceSetting = (value: number[] | string, key: keyof ForceSettings) => {
-    useStore.setState({
+    useStore.setState(({ forceSettings }) => ({
       forceSettings: {
         ...forceSettings,
         [key]: typeof value === 'string' ? Number.parseFloat(value) : value[0],
       },
-    });
+    }));
   };
   return (
     <Collapsible defaultOpen className='text-xs'>

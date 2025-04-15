@@ -20,7 +20,7 @@ export function ForceLayout() {
   const edges = useRef<SimulationLinkDatum<NodeAttributes>[]>([]);
   const simulation = useRef<Simulation<NodeAttributes, SimulationLinkDatum<NodeAttributes>>>();
   const graph = sigma.getGraph();
-  const settings = useStore(state => state.forceSettings);
+  const forceSettings = useStore(state => state.forceSettings);
   const defaultNodeSize = useStore(state => state.defaultNodeSize);
 
   const tick = useCallback(() => {
@@ -54,7 +54,7 @@ export function ForceLayout() {
           'link',
           forceLink<NodeAttributes, SimulationLinkDatum<NodeAttributes>>(edges.current)
             .id(d => d.ID!)
-            .distance(settings.linkDistance),
+            .distance(forceSettings.linkDistance),
         )
         .force('charge', forceManyBody().strength(-200).theta(0.8))
         .force('collide', forceCollide(defaultNodeSize * 8))
@@ -80,12 +80,12 @@ export function ForceLayout() {
       'link',
       forceLink<NodeAttributes, SimulationLinkDatum<NodeAttributes>>(edges.current)
         .id(d => d.ID!)
-        .distance(settings.linkDistance),
+        .distance(forceSettings.linkDistance),
     );
     simulation.current.force('collide', forceCollide(defaultNodeSize * 8));
     simulation.current.alpha(0.3).restart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings]);
+  }, [forceSettings]);
 
   return null;
 }
