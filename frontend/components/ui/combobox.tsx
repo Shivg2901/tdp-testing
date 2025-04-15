@@ -79,7 +79,8 @@ export function Combobox({
                             : 'opacity-0',
                         )}
                       />
-                      {propertyName}
+                      {propertyName.startsWith('[USER]') && <b className='mr-1'>[USER]</b>}
+                      {propertyName.replace('[USER]', '')}
                     </div>
                     {typeof item !== 'string' && item.description && (
                       <Tooltip>

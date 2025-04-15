@@ -20,6 +20,7 @@ const SigmaContainer = dynamic(() => import('@/components/graph').then(module =>
 export default function NetworkPage() {
   return (
     <SigmaContainer
+      className='w-full h-full'
       settings={{
         enableEdgeEvents: true,
         defaultNodeType: 'circle',
@@ -30,6 +31,7 @@ export default function NetworkPage() {
         defaultNodeColor: 'skyblue',
         zoomingRatio: 1.2,
         zIndex: true,
+        renderEdgeLabels: true,
       }}
     />
   );

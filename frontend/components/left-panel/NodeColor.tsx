@@ -68,7 +68,7 @@ export function NodeColor({ onPropChange }: { onPropChange: (prop: string | Set<
           (radioValue === 'TE' || radioValue === 'Pathway' ? (
             <VirtualizedCombobox
               key={radioValue}
-              data={[...radioOptions.database[radioValue], ...radioOptions.user[radioValue]]}
+              data={[...radioOptions.user[radioValue], ...radioOptions.database[radioValue]]}
               className='mt-2 w-full text-black'
               value={selectedNodeColorProperty}
               onChange={onPropChange}
@@ -77,7 +77,7 @@ export function NodeColor({ onPropChange }: { onPropChange: (prop: string | Set<
           ) : (
             <Combobox
               key={radioValue}
-              data={[...radioOptions.database[radioValue], ...radioOptions.user[radioValue]]}
+              data={[...radioOptions.user[radioValue], ...radioOptions.database[radioValue]]}
               className='mt-2 w-full text-black'
               value={selectedNodeColorProperty}
               onChange={onPropChange}

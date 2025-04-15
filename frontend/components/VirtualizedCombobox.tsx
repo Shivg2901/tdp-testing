@@ -92,7 +92,7 @@ const VirtualizedCommand = ({
                   value={value}
                   onSelect={onSelectOption}
                 >
-                  <div className='flex item-center'>
+                  <div className='flex items-center'>
                     <Check
                       className={cn(
                         'mr-2 h-4 w-4',
@@ -101,7 +101,8 @@ const VirtualizedCommand = ({
                           : 'opacity-0',
                       )}
                     />
-                    {value}
+                    {value.startsWith('[USER]') && <b className='mr-1'>[USER]</b>}
+                    {value.replace('[USER]', '')}
                   </div>
                   {typeof option !== 'string' && option.description && (
                     <Tooltip>
