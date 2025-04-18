@@ -100,8 +100,8 @@ query GetGenes($config: [DataRequired!], $geneIDs: [String!]!) {
   "variables": {
     "config": [
       {
-        "disease": "PSP",
-        "properties": ["GDA_Score_opentargets_overall_association_score"]
+        "disease": "MONDO_0019037",
+        "properties": ["OpenTargets_Score_opentargets_overall_association_score"]
       },
       {
         "properties": ["pathway_Oxidative Stress Induced Senescence"]
@@ -124,7 +124,7 @@ query GetGenes($config: [DataRequired!], $geneIDs: [String!]!) {
         "Description": "Breast cancer type 1 susceptibility protein",
         "Aliases": "BRCA1, BRCC1, BROVCA1, FANCS, IRIS, PNCA4, PPP1R53, PSCP, RNF53",
         "disease": {
-          "GDA_Score_opentargets_overall_association_score": 0.5
+          "OpenTargets_Score_opentargets_overall_association_score": 0.5
         },
         "common": {
           "pathway_Oxidative Stress Induced Senescence": 1
@@ -195,19 +195,19 @@ query GetHeaders($disease: String) {
       ],
       "disease": [
         {
-          "name": "GDA_Score_opentargets_overall_association_score",
+          "name": "OpenTargets_Score_opentargets_overall_association_score",
           "description": "Overall association score from OpenTargets"
         },
         {
-          "name": "GDA_Score_opentargets_uniprot_variants",
+          "name": "OpenTargets_Score_opentargets_uniprot_variants",
           "description": "Association score from OpenTargets based on UniProt variants"
         },
         {
-          "name": "GDA_Score_opentargets_eva",
+          "name": "OpenTargets_Score_opentargets_eva",
           "description": "Association score from OpenTargets based on EVA"
         },
         {
-          "name": "GDA_Score_opentargets_clingen",
+          "name": "OpenTargets_Score_opentargets_clingen",
           "description": "Association score from OpenTargets based on ClinGen"
         }
         ...

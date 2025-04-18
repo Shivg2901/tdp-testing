@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { GraphStore } from '../interface';
 import { initRadioOptions } from '../utils';
+import { OPENTARGETS_PROPERTY_MAPPING } from '../data';
 
 export const useStore = create<GraphStore>(() => ({
   projectTitle: 'Untitled',
@@ -31,11 +32,20 @@ export const useStore = create<GraphStore>(() => ({
     nodeDegreeProperty: 'Gene Degree',
   },
   geneIDs: [],
-  diseaseName: 'ALS',
+  diseaseName: '',
   universalData: {},
   radioOptions: {
     user: initRadioOptions(),
-    database: initRadioOptions(),
+    database: {
+      LogFC: [],
+      OpenTargets: OPENTARGETS_PROPERTY_MAPPING,
+      Genetics: [],
+      Pathway: [],
+      Druggability: [],
+      TE: [],
+      Custom_Color: [],
+      OT_Prioritization: [],
+    },
   },
   selectedNodeSizeProperty: '',
   selectedNodeColorProperty: '',

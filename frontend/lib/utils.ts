@@ -78,12 +78,12 @@ export function envURL(env?: string) {
 export function initRadioOptions() {
   return {
     LogFC: [],
-    GDA: [],
-    GWAS: [],
+    OpenTargets: [],
+    Genetics: [],
     Pathway: [],
     Druggability: [],
     TE: [],
     Custom_Color: [],
-    Database: [],
+    OT_Prioritization: [],
   };
 }

@@ -113,10 +113,10 @@ export function SizeAnalysis() {
         else attr.size = 0.5;
         return attr;
       });
-    } else if (selectedRadioNodeSize === 'GWAS' && typeof selectedNodeSizeProperty === 'string') {
+    } else if (selectedRadioNodeSize === 'Genetics' && typeof selectedNodeSizeProperty === 'string') {
       const minMax = Object.values(universalData).reduce(
         (acc, cur) => {
-          const valString = (cur[userOrDiseaseIdentifier] as OtherSection).GWAS?.[selectedNodeSizeProperty];
+          const valString = (cur[userOrDiseaseIdentifier] as OtherSection).Genetics?.[selectedNodeSizeProperty];
           if (!valString) return acc;
           const value = +valString;
           if (Number.isNaN(value)) return acc;
@@ -133,10 +133,10 @@ export function SizeAnalysis() {
         else attr.size = 0.5;
         return attr;
       });
-    } else if (selectedRadioNodeSize === 'GDA' && typeof selectedNodeSizeProperty === 'string') {
+    } else if (selectedRadioNodeSize === 'OpenTargets' && typeof selectedNodeSizeProperty === 'string') {
       const minMax = Object.values(universalData).reduce(
         (acc, cur) => {
-          const valString = (cur[userOrDiseaseIdentifier] as OtherSection).GDA?.[selectedNodeSizeProperty];
+          const valString = (cur[userOrDiseaseIdentifier] as OtherSection).OpenTargets?.[selectedNodeSizeProperty];
           if (!valString) return acc;
           const value = +valString;
           if (Number.isNaN(value)) return acc;
@@ -149,6 +149,17 @@ export function SizeAnalysis() {
         const val = (universalData[node]?.[userOrDiseaseIdentifier] as OtherSection)?.[selectedRadioNodeSize][
           selectedNodeSizeProperty
         ];
+        if (val != null && !Number.isNaN(+val)) attr.size = sizeScale(+val);
+        else attr.size = 0.5;
+        return attr;
+      });
+    } else if (selectedRadioNodeSize === 'OT_Prioritization' && typeof selectedNodeSizeProperty === 'string') {
+      const sizeScale = scaleLinear<number, number>(
+        [-1, 0, 1],
+        [defaultNodeSize - 10, defaultNodeSize, defaultNodeSize + 10],
+      );
+      graph.updateEachNodeAttributes((node, attr) => {
+        const val = universalData[node]?.[userOrCommonIdentifier].OT_Prioritization[selectedNodeSizeProperty];
         if (val != null && !Number.isNaN(+val)) attr.size = sizeScale(+val);
         else attr.size = 0.5;
         return attr;

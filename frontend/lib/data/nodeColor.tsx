@@ -3,19 +3,63 @@ import type { PROPERTY_LABEL_TYPE_MAPPING } from '.';
 export const nodeColor = [
   {
     label: 'LogFC',
-    tooltipContent: <>Differential Expression in Log2 fold change.</>,
+    tooltipContent: (
+      <>
+        Differential Expression in Log2 fold change <br /> <b>Disclaimer:</b> We have provided this data for very few
+        diseases like ALS (MONDO_0004976), PSP (MONDO_0019037). Users are encouraged to upload their own data through
+        upload files button at the bottom.
+      </>
+    ),
   },
   {
     label: 'GDA',
-    tooltipContent: <>Gene Disease Association Score</>,
+    tooltipContent: (
+      <>
+        Target-Disease Association from{' '}
+        <a href='https://platform.opentargets.org/' className='underline'>
+          Opentargets
+        </a>{' '}
+        Platform
+      </>
+    ),
   },
   {
     label: 'Genetics',
-    tooltipContent: <>Odd ratio or Beta-values from population studies.</>,
+    tooltipContent: (
+      <>
+        Odd ratio or Beta-values from population studies. <br /> <b>Disclaimer:</b> We have provided this data for very
+        few diseases like ALS (MONDO_0004976), OI (MONDO_0019019). Users are encouraged to upload their own data through
+        upload files button at the bottom.
+      </>
+    ),
+  },
+  {
+    label: 'Target Prioritization Factors',
+    tooltipContent: (
+      <>
+        Target prioritization factors from{' '}
+        <a href='https://platform.opentargets.org/' className='underline'>
+          Opentargets
+        </a>{' '}
+        Platform
+      </>
+    ),
   },
   {
     label: 'Pathways',
-    tooltipContent: <>Pathways membership from MSigDB</>,
+    tooltipContent: (
+      <>
+        Pathways from{' '}
+        <a href='http://www.genome.jp/kegg' className='underline'>
+          KEGG
+        </a>{' '}
+        and{' '}
+        <a href='https://reactome.org/' className='underline'>
+          Reactome
+        </a>{' '}
+        databases
+      </>
+    ),
   },
   {
     label: 'Druggability',
@@ -24,10 +68,6 @@ export const nodeColor = [
         Druggability scores from{' '}
         <a href='https://astrazeneca-cgr-publications.github.io/DrugnomeAI/index.html' className='underline'>
           DrugnomeAI
-        </a>
-        /
-        <a href='https://public.cgr.astrazeneca.com/mantisml/v2/index.html' className='underline'>
-          Mantis-ML
         </a>
       </>
     ),
@@ -39,6 +79,10 @@ export const nodeColor = [
         Tissue-specific expression from{' '}
         <a href='https://gtexportal.org/' className='underline'>
           GTEX
+        </a>
+        ,{' '}
+        <a href='https://www.brain-map.org/' className='underline'>
+          ABA(Alan Brain Atlas)
         </a>{' '}
         and{' '}
         <a href='https://www.proteinatlas.org/' className='underline'>
@@ -46,10 +90,6 @@ export const nodeColor = [
         </a>
       </>
     ),
-  },
-  {
-    label: 'Databases',
-    tooltipContent: <>Membership in Various Databases</>,
   },
   {
     label: 'Custom',

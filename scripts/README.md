@@ -1,107 +1,109 @@
-# Scripts for Data Pre-processing & Uploading to database
+> **NOTE:** It is a markdown file so it can be rendered in a markdown viewer. For VSCode, you can press `Ctrl+Shift+V` to open the markdown preview.
 
-> For developers:
-> You can automate the data pre-processing and uploading to the database using the scripts provided in this directory by providing necessary options to run script without human interactions. Use the command for help `node <script-name> [-h | --help]` to know more about the options available.
+# Important Instructions
 
-## Q: Do you have unnormlized protein-protein interaction data?
+- Before running any script, make sure to have the necessary dependencies installed by running `npm install` or `pnpm install`(used pnpm here for building the scripts) in this directory.
 
-1. Run the following scripts to normalize the data & provide the required input in interactive mode.:
+- For using python scripts, make sure to install necessary dependencies using `pip install -r requirements.txt` ([requirements.txt](./requirements.txt)). Here, is the list of dependencies:
 
-   ```bash
-   npm run protein-normalizer-txt2csv
-   # OR
-   node protein-normalizer-txt2csv.js # with options
-   ```
+  - `pandas`
+  - `fastparquet`
 
-2. Now, protein to gene mapping is required to upload the data to the database. Run the following script to map protein to gene & provide the required input in interactive mode.:
+- For [gene-universal-seed](./gene-universal-seed.js) to work, you need to have the csv file inside this scripts directory as this is linked to docker volume of the neo4j database.
 
-   ```bash
-   npm run protein2gene
-   # OR
-   node --max-old-space-size=6144 protein2gene.js # with options
-   ```
+- Scripts can either be run using `node <script-name>` or `npm run <script-name>` which have CLI behavior and interactive prompts behavior respectively. Use `node <filename> -h` to see the help message.
 
-## Database Seeding
+- These scripts are primarily designed to be run in a local/server environment and not in a remote environment, i.e. data can't be ingested from a remote location. Though it can be deleted from a remote location.
 
-### Seeding the Interaction data
+- All these scripts are designed such that all required data for ingestion or processing is required to be placed inside [`data`](./data) directory. The scripts will look for the data in this directory and might not work if the data is not present in this directory. This is just a recommendation for those scripts which require you to specify the path of the data (though path should be given as per the scripts directory), but it is a requirement other scripts if they expect data (like python scripts, these are typically controlled by automation scripts present in [automation](./automation/) directory).
 
-> 💡 **NOTE**  
-> Before running the following scripts, make sure you have transferred the seeding data to the server.
->
-> - To transfer files to the server, you can use the following command:
+# Updating OpenTargets Data
+
+## Target Prioritization Scores
+
+Run this automation script:
+
+- [bash](./automation/tps-automation.sh)
+- [powershell](./automation/tps-automation.ps1)
+
+> **NOTE:** Any of the script can be run, but both requires `wget` to be installed in the system.
+> To install `wget`:
 >
 > ```bash
-> # Transfer files to the server
-> scp -r <source-path> <username>@<server-ip>:<destination-path>
+> # Linux
+> sudo apt-get install wget
 > ```
 >
-> > 💡 **NOTE**  
-> > Replace `<destination-path>` with the path specified in the [docker-compose.yml](../docker-compose.yml) file.
-> >
-> > ```yaml
-> > services:
-> >   neo4j:
-> >     ...
-> >     volumes:
-> >       - <destination-path>:/var/lib/neo4j/import
-> > ```
->
+> ```powershell
+> # Windows
+> winget install --id GNU.Wget2
+> Set-Alias -Name wget -Value wget2
+> ```
 
-Now, you can upload the data to the database. Run the following script to upload the data to the database & provide the required input in interactive mode.:
+# FAQ & Acronyms
 
-```bash
-npm run gene-score-seed
-# OR
-node gene-score-seed.js # with options
-```
+- _gus:_ Gene Universal Seeding
+- _gss:_ Gene Score Seeding
+- _gud:_ Gene Universal Deletion
+- _rgu:_ Reference Genome Update
+- _dms:_ Disease Mapping Seeding
+- _gottdas:_ Gene OpenTargets Target Disease Association Seeding
+- _ot-tpf:_ OpenTargets Target Prioritization Factors
+- _ot-tda:_ OpenTargets Target Disease Association
+- _rgv:_ Reference Genome Verification
+- _pdu:_ Property Description Update
 
-### Seeding the Universal Data
+# Database Ingestion Order
 
-Now, you can upload the universal data to the database. Run the following script to upload the data to the database & provide the required input in interactive mode.:
+Here, is a script which describes the order in which database should be prepared and ingested. This is important as some scripts depend on the data from other scripts. The order is as follows:
 
-> 💡 **NOTE**
-> Before running the following scripts, make sure you have transferred the seeding data to the server. And csv data needs to be in the same folder as the script.
-
-```bash
-npm run gene-universal-seed
-# OR
-node gene-universal-seed.js # with options
-```
-
-### Reference Genome Update
-
-Incase, you have a new reference genome data, you can update the reference genome data in the database. Run the following script to update the reference genome data in the database & provide the required input in interactive mode.:
+1. `rgu` - Reference Genome Update
+2. `gss` - Gene Score Seeding
+3. `gus` - Gene Universal Seeding
+4. `gottdas` - Gene OpenTargets Target Disease Association Seeding
+5. `dms` - Disease Mapping Seeding
+6. `pdu` - Property Description Update
 
 ```bash
-npm run reference-genome-update
-# OR
-node reference-genome-update.js # with options
+# Absolute path to the working directory (adjust as needed)
+WORKDIR="/path/to/this/directory"  # <-- Change this
+# Neo4j password (change this to your actual password)
+PASSWORD="your_password"  # <-- Change this
+# Log file
+LOGFILE="$WORKDIR/data_pipeline_$(date +%F_%T).log"
+
+# Commands
+DEFAULT_ARGS="-U bolt://localhost:7687 -u neo4j -p $PASSWORD -d pdnet"
+
+cd "$WORKDIR"
+echo "Running pipeline from: $WORKDIR" | tee -a "$LOGFILE"
+
+{
+  pnpm rgu -f data/hgnc_master_gene_list_with_uniprot.csv $DEFAULT_ARGS
+  pnpm gss -f data/ppi_db_string.csv -i PPI -t ENSEMBL-ID $DEFAULT_ARGS
+  pnpm gss -f data/funppi_db_string.csv -i FUN_PPI -t ENSEMBL-ID $DEFAULT_ARGS
+  pnpm gss -f data/biogrid_score.csv -i BIO_GRID -t HGNC-Symbol $DEFAULT_ARGS
+  pnpm gss -f data/intact_score.csv -i INT_ACT -t HGNC-Symbol $DEFAULT_ARGS
+  pnpm gus -f data/TDP_Pathway_KEGG_binary_corrected_modified_kept_rows.csv --nh --di $DEFAULT_ARGS
+  pnpm gus -f data/TDP_Pathway_reactome_binary_corrected_modified_kept_rows.csv --nh --di $DEFAULT_ARGS
+  pnpm gus -f data/TE_consensus_bulkrna_kept_rows.csv --nh --di $DEFAULT_ARGS
+  pnpm gus -f data/TE_HPA_scrna_kept_rows.csv --nh --di $DEFAULT_ARGS
+  pnpm gus -f data/Druggability.csv --nh --di $DEFAULT_ARGS
+  pnpm gus -f data/ot_25.03_target_prioritization_score.csv --nh --di $DEFAULT_ARGS
+  pnpm gottdas -f data/ot_25.03_datasource_association_score.csv $DEFAULT_ARGS
+  pnpm gottdas -f data/ot_25.03_overall_association_score.csv $DEFAULT_ARGS
+  
+  ## Some LogFC data (as per availability)
+  pnpm gus -f data/ALS_logFC_from_bill_modified_kept_genes.csv --nh $DEFAULT_ARGS -D MONDO_0004976
+  pnpm gus -f data/Mayo_diagnosis_logFC_transformed_PSP_modified_kept_genes.csv --nh $DEFAULT_ARGS -D MONDO_0019037
+  pnpm gus -f data/MSBB_diagnosis_gender_logFC_transformed_PSP_modified_kept_genes.csv --nh $DEFAULT_ARGS -D MONDO_0019037
+  pnpm gus -f data/MSBB_diagnosis_logFC_transformed_PSP_modified_kept_genes.csv --nh $DEFAULT_ARGS -D MONDO_0019037
+  pnpm gus -f data/ROSMAP_diagnosis_gender_agedeath_logFC_transformed_PSP_modified_kept_genes.csv --nh $DEFAULT_ARGS -D MONDO_0019037
+  pnpm gus -f data/ROSMAP_diagnosis_logFC_transformed_PSP_modified_kept_genes.csv --nh $DEFAULT_ARGS -D MONDO_0019037
+  ########################################
+  pnpm dms -f data/ot_25.03_disease_mapping.csv $DEFAULT_ARGS
+  pnpm pdu -f data/property_description_tbep.csv $DEFAULT_ARGS
+
+  echo "✅ Pipeline completed successfully."
+} 2>&1 | tee -a "$LOGFILE"
 ```
-
-### Deleting Universal Data
-
-Incase, you want to delete some of the universal data from the database. Run the following script to delete the universal data from the database & provide the required input in interactive mode.:
-
-```bash
-npm run gene-universal-delete
-# OR
-node gene-universal-deletion.js # with options
-```
-
-## FAQ
-
-1. Q: How to install node.js and npm in linux system?
-
-   A: Run the following commands to install node.js and npm in linux system:
-
-   ```bash
-   sudo apt update -y
-   sudo apt install nodejs -y
-   sudo apt install npm -y
-   ```
-
-2. Q: What is import directory of database?
-
-   A: The import directory is the directory where the database looks for the files to import the data to the database.
-   - For linux system, the default import directory is `/var/lib/neo4j/import`.
-   - For windows system, the default import directory is `C:\Users\<username>\AppData\Neo4j\Relate\Data\dbmss\<dbms-id>\import`.

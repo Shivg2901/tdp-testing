@@ -2,12 +2,12 @@ import neo4j from "neo4j-driver";
 import inquirer from "inquirer";
 import chalk from "chalk";
 import yargs from "yargs";
-import { platform } from "node:os";
 import Path from "node:path";
 
 const defaultUsername = "neo4j";
 const defaultDatabase = "pdnet";
 const defaultDbUrl = "bolt://localhost:7687";
+const ID_TYPE = ["ENSEMBL-ID", "HGNC-Symbol"];
 
 const argv = yargs(process.argv.slice(2))
   .option("file", {
@@ -40,6 +40,12 @@ const argv = yargs(process.argv.slice(2))
     description: "Specify the interaction type",
     type: "string",
   })
+  .option("id-type", {
+    alias: "t",
+    description: "Specify the ID type",
+    type: "string",
+    choices: ID_TYPE,
+  })
   .help()
   .alias("help", "h")
   .version("1.0.0")
@@ -62,13 +68,13 @@ async function promptForDetails(answer) {
       type: "input",
       name: "file",
       message: "Enter the file path:",
-			validate: (input) => {
-				input = input?.trim();
-				if (Path.extname(input) !== ".csv") {
-					return "Please enter a CSV file";
-				}
-				return true;
-			},
+      validate: (input) => {
+        input = input?.trim();
+        if (Path.extname(input) !== ".csv") {
+          return "Please enter a CSV file";
+        }
+        return true;
+      },
     },
     !answer.dbUrl && {
       type: "input",
@@ -79,20 +85,20 @@ async function promptForDetails(answer) {
     !answer.username && {
       type: "input",
       name: "username",
-      message: "Enter the username: (default: neo4j)",
+      message: "Enter the database username:",
       default: defaultUsername,
     },
     !answer.password && {
       type: "password",
       name: "password",
-      message: "Enter the password:",
+      message: "Enter the database password:",
       mask: "*",
       required: true,
     },
     !answer.database && {
       type: "input",
       name: "database",
-      message: "Enter the database name: (default: pdnet)",
+      message: "Enter the database name:",
       default: defaultDatabase,
       required: true,
     },
@@ -102,23 +108,26 @@ async function promptForDetails(answer) {
       message: "Enter the interaction type [Make sure it's just one word]:",
       required: true,
     },
+    !answer.idType && {
+      type: "input",
+      name: "idType",
+      message: "Select the ID type:",
+      choices: ID_TYPE,
+      default: ID_TYPE[0],
+    },
   ].filter(Boolean);
 
   return inquirer.prompt(questions);
 }
 
 (async () => {
-  let {
-    file,
-    dbUrl,
-    username,
-    password,
-    database,
-    interactionType,
-  } = argv;
+  let { file, dbUrl, username, password, database, interactionType, idType } =
+    await argv;
   console.warn(
-    chalk.bold("[WARN]"),
-    "Make sure to not enter header names in CSV file"
+    chalk.yellow(
+      chalk.bold("[WARN]"),
+      "Make sure to not enter header names in CSV file"
+    )
   );
   console.info(
     chalk.blue.bold("[INFO]"),
@@ -132,7 +141,8 @@ async function promptForDetails(answer) {
     !username ||
     !password ||
     !database ||
-    !interactionType
+    !interactionType ||
+    !idType
   ) {
     try {
       const answers = await promptForDetails({
@@ -142,6 +152,7 @@ async function promptForDetails(answer) {
         password,
         database,
         interactionType,
+        idType,
       });
       file ||= answers.file;
       dbUrl ||= answers.dbUrl;
@@ -149,31 +160,24 @@ async function promptForDetails(answer) {
       password ||= answers.password;
       database ||= answers.database;
       interactionType ||= answers.interactionType;
+      idType ||= answers.idType;
     } catch (error) {
       console.info(chalk.blue.bold("[INFO]"), chalk.cyan("Exiting..."));
       process.exit(0);
     }
   }
-
   if (Path.extname(file) !== ".csv") {
-		console.error(chalk.bold("[ERROR]"), "Please enter a CSV file. Exiting...");
-		process.exit(1);
-	}
-  
+    console.error(chalk.bold("[ERROR]"), "Please enter a CSV file. Exiting...");
+    process.exit(1);
+  }
+
   const driver = neo4j.driver(dbUrl, neo4j.auth.basic(username, password));
   const session = driver.session({
     database: database,
   });
-  
-  try {
-    await session.run("CREATE CONSTRAINT IF NOT EXISTS FOR (g:Gene) REQUIRE g.ID IS UNIQUE");
 
-    console.log(
-      chalk.green(
-        chalk.bold("[LOG]"),
-        "Created uniqueness constraint on Gene nodes"
-      )
-    );
+  try {
+    console.log(chalk.green(chalk.bold("[LOG]"), "Loading data into Neo4j..."));
     console.log(
       chalk.green(
         chalk.bold("[LOG]"),
@@ -182,16 +186,24 @@ async function promptForDetails(answer) {
     );
 
     const query = `
-    LOAD CSV FROM 'file:///${file}' AS line
-    CALL {
-      WITH line
-      MERGE (g1:Gene {ID: line[0]})
-      MERGE (g2:Gene {ID: line[1]})
-      MERGE (g1)-[r:${interactionType}]->(g2)
-      ON CREATE SET r.score = toFloat(line[2])
-    } IN TRANSACTIONS;
-  `;
-
+		LOAD CSV FROM '${
+      /^https?:\/\//.test(file)
+        ? file
+        : `file:///${file.replace(/^\.[\\/]+/, "")}`
+    }' AS line
+		CALL {
+			WITH line
+			MATCH (g1:Gene {${
+        idType === ID_TYPE[0] ? "ID" : "Gene_name"
+      }: toUpper(line[0])})
+			MATCH (g2:Gene {${
+        idType === ID_TYPE[0] ? "ID" : "Gene_name"
+      }: toUpper(line[1])})
+			MERGE (g1)-[r:${interactionType}]->(g2)
+			ON CREATE SET r.score = toFloat(line[2])
+		} IN TRANSACTIONS;
+		`;
+    // record execution time
     const start = new Date().getTime();
     const result = await session.run(query);
     const end = new Date().getTime();
@@ -200,16 +212,18 @@ async function promptForDetails(answer) {
     console.log(
       chalk.green(
         chalk.bold("[LOG]"),
-        `Nodes Created: ${result.summary.counters.updates().nodesCreated}`
+        `Relationship Created: ${
+          result.summary.counters.updates().relationshipsCreated
+        }`
       )
     );
+
     console.log(
       chalk.green(
         chalk.bold("[LOG]"),
-        `Relationship Created: ${result.summary.counters.updates().relationshipsCreated}`
+        `Time taken: ${(end - start) / 1000} seconds`
       )
     );
-		console.log(chalk.green(chalk.bold("[LOG]"), `Time taken: ${(end - start) / 1000} seconds`));
   } catch (error) {
     console.error(
       chalk.bold("[ERROR]"),

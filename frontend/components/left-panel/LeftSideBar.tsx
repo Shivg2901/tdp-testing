@@ -5,14 +5,13 @@ import {
   DISEASE_INDEPENDENT_PROPERTIES,
   type DiseaseDependentProperties,
   type DiseaseIndependentProperties,
-  diseaseTooltip,
-  graphConfig,
 } from '@/lib/data';
 import { GENE_UNIVERSAL_QUERY, GET_HEADERS_QUERY } from '@/lib/gql';
 import { useStore } from '@/lib/hooks';
 import type {
   GeneUniversalData,
   GeneUniversalDataVariables,
+  GetDiseaseData,
   GetHeadersData,
   GetHeadersVariables,
   OtherSection,
@@ -25,24 +24,31 @@ import React, { useEffect, useRef } from 'react';
 import { GeneSearch, NodeColor, NodeSize } from '.';
 import { Export, FileSheet } from '../app';
 import { RadialAnalysis } from '../right-panel';
-import { Combobox } from '../ui/combobox';
 import { Label } from '../ui/label';
 import { ScrollArea } from '../ui/scroll-area';
 import { Spinner } from '../ui/spinner';
+import { VirtualizedCombobox } from '../VirtualizedCombobox';
+import { envURL } from '@/lib/utils';
 
 export function LeftSideBar() {
   const diseaseName = useStore(state => state.diseaseName);
   const geneIDs = useStore(state => state.geneIDs);
   const bringCommon = useRef<boolean>(true);
-
+  const [diseaseData, setDiseaseData] = React.useState<GetDiseaseData | null>(null);
+  const [diseaseMap, setDiseaseMap] = React.useState<string>('amyotrophic lateral sclerosis (MONDO_0004976)');
   useEffect(() => {
     const graphConfig = localStorage.getItem('graphConfig');
     if (!graphConfig) redirect('/');
     const diseaseMap = JSON.parse(graphConfig).diseaseMap;
-    if (typeof diseaseMap !== 'string') return;
     useStore.setState({
-      diseaseName: diseaseMap,
+      diseaseName: diseaseMap?.split(' ')?.at(-1)?.slice(1, -1),
     });
+    setDiseaseMap(diseaseMap);
+    (async () => {
+      const response = await fetch(`${envURL(process.env.NEXT_PUBLIC_BACKEND_URL)}/diseases`);
+      const data = await response.json();
+      setDiseaseData(data);
+    })();
   }, []);
 
   const [fetchHeader, { loading, called }] = useLazyQuery<GetHeadersData, GetHeadersVariables>(
@@ -65,8 +71,8 @@ export function LeftSideBar() {
           database: {
             ...useStore.getState().radioOptions.database,
             LogFC: [],
-            GDA: [],
-            GWAS: [],
+            // OpenTargets: [],
+            Genetics: [],
           },
           user: useStore.getState().radioOptions.user,
         };
@@ -85,6 +91,7 @@ export function LeftSideBar() {
         bringCommon.current = false;
         for (const { name, description } of data.disease ?? []) {
           for (const field of DISEASE_DEPENDENT_PROPERTIES) {
+            if (field === 'OpenTargets') continue;
             if (new RegExp(`^${diseaseName}_${field}_`, 'i').test(name)) {
               radioOptions.database[field].push({
                 description,
@@ -109,20 +116,20 @@ export function LeftSideBar() {
         universalData[gene] = {
           common: {
             Custom_Color: {},
-            Database: {},
             Druggability: {},
+            OT_Prioritization: {},
             Pathway: {},
             TE: {},
           },
           user: {
             LogFC: {},
-            GDA: {},
-            GWAS: {},
+            OpenTargets: {},
+            Genetics: {},
+            OT_Prioritization: {},
             Custom_Color: {},
             Druggability: {},
             Pathway: {},
             TE: {},
-            Database: {},
           },
         };
       }
@@ -182,8 +189,8 @@ export function LeftSideBar() {
           if (geneRecord[diseaseName] === undefined) {
             geneRecord[diseaseName] = {
               LogFC: {},
-              GDA: {},
-              GWAS: {},
+              OpenTargets: {},
+              Genetics: {},
             } as OtherSection;
           }
           (universalData[gene.ID][diseaseName] as OtherSection)[selectedRadio as DiseaseDependentProperties][
@@ -198,25 +205,27 @@ export function LeftSideBar() {
     }
   }
 
+  async function handleDiseaseChange(disease: string) {
+    setDiseaseMap(disease);
+    useStore.setState({ diseaseName: disease.split(' ').at(-1)?.slice(1, -1) });
+  }
   return (
     <ScrollArea className='border-r bg-secondary flex flex-col h-[calc(96vh-1.5px)]'>
       <div className='flex flex-col'>
         <Label className='font-bold mb-2 pt-4 pl-2'>Disease Map</Label>
-        <div className='flex items-center'>
+        <div className='flex items-center w-full'>
           <motion.div
             layout
-            className='mx-2'
+            className='px-2 flex-grow min-w-0'
             transition={{ duration: 0.1, ease: 'easeInOut' }}
-            initial={{ width: '100%' }}
             animate
           >
-            <Combobox
-              value={diseaseName}
-              onChange={value => typeof value === 'string' && useStore.setState({ diseaseName: value })}
-              data={graphConfig[0].options.map(option => ({
-                name: option.label,
-                description: diseaseTooltip[option.label],
-              }))}
+            <VirtualizedCombobox
+              value={diseaseMap}
+              placeholder='Search Disease...'
+              onChange={d => typeof d === 'string' && handleDiseaseChange(d)}
+              data={diseaseData?.map(val => `${val.name} (${val.ID})`)}
+              loading={diseaseData === null}
               className='w-full'
             />
           </motion.div>
@@ -227,6 +236,7 @@ export function LeftSideBar() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0 }}
                 transition={{ duration: 0.1 }}
+                className='mr-1'
               >
                 <Spinner size='small' />
               </motion.div>

@@ -31,7 +31,6 @@ export default function NetworkPage() {
         defaultNodeColor: 'skyblue',
         zoomingRatio: 1.2,
         zIndex: true,
-        renderEdgeLabels: true,
       }}
     />
   );

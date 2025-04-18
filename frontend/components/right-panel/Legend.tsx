@@ -30,16 +30,16 @@ export function Legend() {
       </div>
       <CollapsibleContent className='flex flex-col gap-2 p-8 items-center'>
         {selectedRadioNodeColor ? (
-          selectedRadioNodeColor === 'Pathway' || selectedRadioNodeColor === 'Database' ? (
+          selectedRadioNodeColor === 'Pathway' ? (
             <BinaryLegend />
-          ) : selectedRadioNodeColor === 'LogFC' || selectedRadioNodeColor === 'GWAS' ? (
+          ) : selectedRadioNodeColor === 'LogFC' || selectedRadioNodeColor === 'Genetics' ? (
             <HeatmapLegend
               title={PROPERTY_TYPE_LABEL_MAPPING[selectedRadioNodeColor]}
               domain={[-1, 0, 1]}
               range={['green', '#E2E2E2', 'red']}
               divisions={10}
             />
-          ) : selectedRadioNodeColor === 'Druggability' || selectedRadioNodeColor === 'GDA' ? (
+          ) : selectedRadioNodeColor === 'Druggability' || selectedRadioNodeColor === 'OpenTargets' ? (
             <HeatmapLegend
               title={PROPERTY_TYPE_LABEL_MAPPING[selectedRadioNodeColor]}
               domain={[0, 1]}
@@ -52,6 +52,13 @@ export function Legend() {
               range={[defaultNodeColor, 'red']}
               startLabel='Low'
               endLabel='High'
+            />
+          ) : selectedRadioNodeColor === 'OT_Prioritization' ? (
+            <HeatmapLegend
+              title={PROPERTY_TYPE_LABEL_MAPPING[selectedRadioNodeColor]}
+              domain={[-1, 0, 1]}
+              range={['red', '#F0C584', 'green']}
+              divisions={10}
             />
           ) : (
             <p className='text-center font-semibold'>No Legends Available</p>

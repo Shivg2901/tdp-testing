@@ -16,12 +16,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { VirtualizedCombobox } from '@/components/VirtualizedCombobox';
 import { graphConfig } from '@/lib/data';
 import { GENE_VERIFICATION_QUERY } from '@/lib/gql';
-import type { GeneVerificationData, GeneVerificationVariables, GraphConfigForm } from '@/lib/interface';
-import { distinct } from '@/lib/utils';
+import type { GeneVerificationData, GeneVerificationVariables, GetDiseaseData, GraphConfigForm } from '@/lib/interface';
+import { distinct, envURL } from '@/lib/utils';
 import { useLazyQuery } from '@apollo/client';
-import { AlertTriangle, Loader } from 'lucide-react';
+import { AlertTriangle, Info, Loader } from 'lucide-react';
 import React, { type ChangeEvent } from 'react';
 import { toast } from 'sonner';
 
@@ -29,10 +31,19 @@ export default function Home() {
   const [verifyGenes, { data, loading }] = useLazyQuery<GeneVerificationData, GeneVerificationVariables>(
     GENE_VERIFICATION_QUERY,
   );
+  const [diseaseData, setDiseaseData] = React.useState<GetDiseaseData | null>(null);
+
+  React.useEffect(() => {
+    (async () => {
+      const response = await fetch(`${envURL(process.env.NEXT_PUBLIC_BACKEND_URL)}/diseases`);
+      const data = await response.json();
+      setDiseaseData(data);
+    })();
+  }, []);
 
   const [formData, setFormData] = React.useState<GraphConfigForm>({
     seedGenes: 'MAPT, STX6, EIF2AK3, MOBP, DCTN1, LRRK2',
-    diseaseMap: 'ALS',
+    diseaseMap: 'amyotrophic lateral sclerosis (MONDO_0004976)',
     order: '0',
     interactionType: 'PPI',
     minScore: '0.9',
@@ -229,9 +240,39 @@ FIG4`,
             />
           </div>
           <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
+            <div className='space-y-1'>
+              <div className='flex items-end gap-1'>
+                <Label htmlFor='diseaseMap'>Disease Map</Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info size={12} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Contains the disease name to be mapped taken from OpenTargets Portal. <br />
+                    <b>Note:</b> To search disease using its ID, type disease ID in parentheses.
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <VirtualizedCombobox
+                data={diseaseData?.map(val => `${val.name} (${val.ID})`)}
+                value={formData.diseaseMap}
+                onChange={val => typeof val === 'string' && handleSelect(val, 'diseaseMap')}
+                placeholder='Search Disease...'
+                loading={diseaseData === null}
+                className='w-full'
+              />
+            </div>
             {graphConfig.map(config => (
-              <div key={config.id}>
-                <Label htmlFor={config.id}>{config.name}</Label>
+              <div key={config.id} className='space-y-1'>
+                <div className='flex items-end gap-1'>
+                  <Label htmlFor={config.id}>{config.name}</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info size={12} />
+                    </TooltipTrigger>
+                    <TooltipContent>{config.tooltipContent}</TooltipContent>
+                  </Tooltip>
+                </div>
                 <Select required value={formData[config.id]} onValueChange={val => handleSelect(val, config.id)}>
                   <SelectTrigger id={config.id}>
                     <SelectValue placeholder='Select...' />
