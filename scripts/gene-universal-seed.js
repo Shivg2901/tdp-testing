@@ -20,7 +20,7 @@ const GENERAL_SYMBOLS = [
   "Gene_name",
   "Gene name",
 ];
-const DISEASE_DEPENDENT_FIELDS = ["LogFC", "OpenTargets", "Genetics"];
+const DISEASE_DEPENDENT_FIELDS = ["LogFC", "OpenTargets", "GDA", "Genetics"];
 const DISEASE_INDEPENDENT_FIELDS = [
   "Druggability_Score",
   "Pathway",
@@ -31,6 +31,7 @@ const DISEASE_INDEPENDENT_FIELDS = [
 const RENAMED_FIELDS = {
   Druggability_Score: "Druggability",
   "Gene name": "Gene_name",
+  "GDA": "OpenTargets",
 };
 
 // Command-line argument parsing with yargs

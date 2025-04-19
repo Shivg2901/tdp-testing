@@ -169,7 +169,7 @@ def process_kegg_pathways(gene_list: list[str], total_genes=20000):
 
     for _, row in df.iterrows():
 
-        gene_set = row.iloc[0]
+        pathway = row.iloc[0]
 
         pathway_genes = str(row[1]).split(" ")
 
@@ -187,7 +187,7 @@ def process_kegg_pathways(gene_list: list[str], total_genes=20000):
             p_values.append(p_value)
             result.append(
                 {
-                    "Gene_set": gene_set,
+                    "Pathway": pathway,
                     "Overlap": f"{overlap_count}/{pathway_size}",
                     "P-value": p_value,
                     "Adjusted P-value": None,  # Placeholder for now

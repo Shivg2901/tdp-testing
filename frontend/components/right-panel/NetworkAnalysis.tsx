@@ -70,7 +70,7 @@ export function NetworkAnalysis() {
                         </div>
                       );
                     })}
-                    <Button type='submit' size={'sm'} className=''>
+                    <Button type='submit' size={'sm'}>
                       Apply
                     </Button>
                   </form>

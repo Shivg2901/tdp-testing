@@ -294,7 +294,7 @@ FIG4`,
               style={{
                 background: 'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
               }}
-              className='w-3/4 text-white mb-4'
+              className='w-3/4 mb-4'
             >
               {loading ? (
                 <>

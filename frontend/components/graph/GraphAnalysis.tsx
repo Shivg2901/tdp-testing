@@ -9,7 +9,7 @@ import { useSigma } from '@react-sigma/core';
 import { fitViewportToNodes } from '@sigma/utils';
 import { scaleLinear } from 'd3-scale';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
@@ -234,6 +234,12 @@ export function GraphAnalysis({ highlightedNodesRef }: { highlightedNodesRef?: R
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const getReadableTextColor = useCallback((hex: string) => {
+    const [r, g, b] = hex.match(/\w\w/g)!.map(v => Number.parseInt(v, 16));
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 140 ? '#000' : '#fff';
+  }, []);
+
   return (
     <>
       {Object.keys(communityMap).length > 0 && (
@@ -250,8 +256,8 @@ export function GraphAnalysis({ highlightedNodesRef }: { highlightedNodesRef?: R
                 }}
               />
               <Button
-                style={{ backgroundColor: val.color }}
-                className='h-5 w-30'
+                style={{ backgroundColor: val.color, color: getReadableTextColor(val.color) }}
+                className='h-5 w-32'
                 onClick={() => fitViewportToNodes(sigma, val.genes, { animate: true })}
               >
                 Community {idx + 1}

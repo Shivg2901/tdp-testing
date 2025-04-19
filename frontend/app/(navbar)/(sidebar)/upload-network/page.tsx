@@ -151,7 +151,7 @@ export default function UploadFile() {
               background: 'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
             }}
             type='submit'
-            className='w-full text-white'
+            className='w-full'
           >
             {loading && <Loader className='animate-spin mr-2' size={20} />} Submit
           </Button>

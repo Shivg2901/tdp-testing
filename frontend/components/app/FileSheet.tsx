@@ -174,6 +174,19 @@ export function FileSheet() {
             if (!geneID || !universalData[geneID]) continue;
             for (const prop in row) {
               if (prop === IDHeaderName) continue;
+
+              // GWAS alias of Genetics
+              if (/^GWAS_/i.test(prop)) {
+                universalData[geneID].user.Genetics[prop.replace(/^GWAS_/i, '')] = row[prop];
+                continue;
+              }
+
+              // GDA alias of OpenTargets
+              if (/^GDA_/i.test(prop)) {
+                universalData[geneID].user.OpenTargets[prop.replace(/^GDA_/i, '')] = row[prop];
+                continue;
+              }
+
               for (const field of [...DISEASE_DEPENDENT_PROPERTIES, ...DISEASE_INDEPENDENT_PROPERTIES]) {
                 const fieldRegex = new RegExp(`^${field}_`, 'i');
                 if (fieldRegex.test(prop)) {
@@ -185,6 +198,19 @@ export function FileSheet() {
           }
           for (const prop of parsedData.meta.fields ?? []) {
             if (prop === IDHeaderName) continue;
+
+            // GWAS alias of Genetics
+            if (/^GWAS_/i.test(prop)) {
+              radioOptions.user.Genetics.push(`[USER] ${prop.replace(/^GWAS_/i, '')}`);
+              continue;
+            }
+
+            // GDA alias of OpenTargets
+            if (/^GDA_/i.test(prop)) {
+              radioOptions.user.OpenTargets.push(`[USER] ${prop.replace(/^GDA_/i, '')}`);
+              continue;
+            }
+
             for (const field of [...DISEASE_DEPENDENT_PROPERTIES, ...DISEASE_INDEPENDENT_PROPERTIES]) {
               const fieldRegex = new RegExp(`^${field}_`, 'i');
               if (fieldRegex.test(prop)) {
@@ -235,7 +261,7 @@ export function FileSheet() {
       <div className='flex flex-col lg:flex-row gap-2 justify-between'>
         <Sheet>
           <SheetTrigger asChild>
-            <Button size='sm' className='text-xs text-white w-full'>
+            <Button size='sm' className='w-full'>
               <Upload className='h-3 w-3 mr-1' />
               Upload Files
             </Button>
@@ -326,14 +352,14 @@ export function FileSheet() {
             </div>
             <SheetFooter>
               <SheetTrigger asChild>
-                <Button onClick={handleUniversalUpdate} className='w-full text-white'>
+                <Button onClick={handleUniversalUpdate} className='w-full'>
                   Submit
                 </Button>
               </SheetTrigger>
             </SheetFooter>
           </SheetContent>
         </Sheet>
-        <Button variant={'destructive'} size={'sm'} className='text-xs' onClick={handleReset}>
+        <Button variant={'default'} size={'sm'} className='w-full' onClick={handleReset}>
           Reset Uploads
         </Button>
       </div>

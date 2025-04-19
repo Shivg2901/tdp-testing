@@ -16,7 +16,7 @@ Before going over the functions on the left panel, you might want to have some b
 
 [Knowledge Base](../knowledge-base.mdx) integrated in our tool is build based on [disease-dependent data](../knowledge-base/disease-dependent-data.mdx) and [disease-independent data](../knowledge-base/disease-independent-data.mdx). Disease-dependent data indicates the data of specific features varies based on different diseases, while disease-independent data indicates the data remains the same once the disease changes.
 
-Disease-dependent data includes [LogFC](../knowledge-base/disease-dependent-data/logfc.mdx), [OpenTargets](../knowledge-base/disease-dependent-data/gda.mdx)and [Genetics](../knowledge-base/disease-dependent-data/genetics.mdx), while disease-independent data includes [Pathway](../knowledge-base/disease-independent-data/pathway.mdx), [Druggability](../knowledge-base/disease-independent-data/druggability.mdx), [Tissue Enrichment](../knowledge-base/disease-independent-data/tissue-enrichment.mdx). We also call these data types as **features**.
+Disease-dependent data includes [LogFC](../knowledge-base/disease-dependent-data/logfc.mdx), [GDA](../knowledge-base/disease-dependent-data/gda.mdx)and [Genetics](../knowledge-base/disease-dependent-data/genetics.mdx), while disease-independent data includes [Pathway](../knowledge-base/disease-independent-data/pathway.mdx), [Druggability](../knowledge-base/disease-independent-data/druggability.mdx), [Tissue Enrichment](../knowledge-base/disease-independent-data/tissue-enrichment.mdx). We also call these data types as **features**.
 
 ### Disease Map
 
@@ -110,15 +110,16 @@ You can upload your own customized data to analyze the network, instead of using
 - The table below elaborates the naming convention, and the value ranges for all the supported features (data types).
   - "Custom" data type is for customized color purpose. For example, if you find all the features do not fit your needs, you can create your own "customized feature" and color them by yourself.
 
-| Data Type         | Column Naming Convention                                            | Value range                                                                                                 |
-| ----------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| LogFC             | LogFC<pre className="inline text-red-500">CustomName</pre>          | [-Inf, +Inf]                                                                                                |
-| OpenTargets               | OpenTargets\_<pre className="inline text-red-500">CustomName</pre>          | [0, 1]                                                                                                      |
-| Genetics          | GWAS\_<pre className="inline text-red-500">CustomName</pre>         | [-1, 1]                                                                                                     |
-| Pathway           | Pathway\_<pre className="inline text-red-500">CustomName</pre>      | Binary (0/1)                                                                                                |
-| Druggability      | Druggability\_<pre className="inline text-red-500">CustomName</pre> | [0, 1]                                                                                                      |
-| Tissue Enrichment | TE\_<pre className="inline text-red-500">CustomName</pre>           | [0, +Inf]                                                                                                   |
-| Custom            | Custom*Color*<pre className="inline text-red-500">CustomName</pre>  | Any hex color code or CSS color name, see list [here ↗](https://www.w3schools.com/colors/colors_names.asp) |
+| Data Type                     | Column Naming Convention                                                    | Value range                                                                                                 |
+| ----------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| LogFC                         | LogFC\_<pre className="inline text-red-500">CustomName</pre>              | [-Inf, +Inf]                                                                                                |
+| GDA                           | [GDA\|OpenTargets]\_<pre className="inline text-red-500">CustomName</pre> | [0, 1]                                                                                                      |
+| Genetics                      | [GWAS\|Genetics]\_<pre className="inline text-red-500">CustomName</pre>   | [-1, 1]                                                                                                     |
+| Target Prioritization Factors | OT_Prioritization\_<pre className="inline text-red-500">CustomName</pre>  | [0, 1]                                                                                                      |
+| Pathway                       | Pathway\_<pre className="inline text-red-500">CustomName</pre>            | Binary (0/1)                                                                                                |
+| Druggability                  | Druggability\_<pre className="inline text-red-500">CustomName</pre>       | [0, 1]                                                                                                      |
+| Tissue Enrichment             | TE\_<pre className="inline text-red-500">CustomName</pre>                 | [0, +Inf]                                                                                                   |
+| Custom                        | Custom\_Color\_<pre className="inline text-red-500">CustomName</pre>      | Any hex color code or CSS color name, see list [here ↗](https://www.w3schools.com/colors/colors_names.asp)  |
 
 - The CSV file below provides an example of what the real file looks like.
   - The first column must be either gene name or Ensembl id (column name doesn't matter)
