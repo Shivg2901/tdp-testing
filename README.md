@@ -9,7 +9,6 @@ For other IDEs, refer to their mannual for enabling markdown rendering feature.
 ## Table of Contents
 
 - [Description](#description)
-- [Server Configuration](#server-configuration)
 - [Installation](#installation)
 - [Importing/Exporting Data](#importingexporting-data)
 - [More Information](#more-information)
@@ -20,120 +19,12 @@ For other IDEs, refer to their mannual for enabling markdown rendering feature.
 This project is for gene analysis purpose. Frontend contains a web interface for graph traversal  
 and analysing the gene data. Backend contains the graph traversal algorithm and the gene data.
 
-## Server Configuration [SKIP IF RUNNING LOCALLY]
-
-1. Install essential packages (if you don't have) & open firewall ports:
-
-	```bash
-	# Install essential packages
-	sudo apt update -y
-	sudo apt install -y git nginx
-	sudo systemctl enable nginx
-	sudo systemctl start nginx
-
-	# Open firewall ports
-	sudo ufw enable
-	sudo ufw allow 'Nginx Full' 'Nginx Full(v6)' 'OpenSSH' 'OpenSSH (v6)'
-	```
-
-2. Install docker (if you don't have) & add user to docker group (to avoid using sudo for docker commands):
-
-    ```bash
-    # Add Docker's official GPG key:
-    sudo apt-get update
-    sudo apt-get install ca-certificates curl
-    sudo install -m 0755 -d /etc/apt/keyrings
-    sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-    sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-    # Add Docker APT repository:
-    echo "deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-    # Install Docker
-    sudo apt-get update
-    sudo apt-get install docker-ce docker-ce-cli containerd.io
-
-    # Add user to docker group
-    sudo groupadd docker
-    sudo usermod -aG docker $USER
-    newgrp docker
-    ```
-
-3. Configure nginx:
-
-    ```bash
-    # Create a new server block (change filename as per requirement)
-    sudo vim /etc/nginx/conf.d/pdnet-rnd-web.conf
-    # Frontend configuration
-    ```
-
-    ```bash
-    server {
-        listen 80;
-        # Can change the hosting link accordingly
-        server_name pdnet-rnd-web.crecientech.com;
-
-        location / {
-            # Change the port as per requirement
-            proxy_pass http://localhost:5000;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_cache_bypass $http_upgrade;
-        }
-    }
-    ```
-
-    ```bash
-    # Backend configuration (change filename as per your requirement)
-    sudo vim /etc/nginx/conf.d/pdnet-rnd-apis.conf
-    ```
-
-    ```bash
-    server {
-        listen 80;
-        # Can change the hosting link accordingly
-        server_name pdnet-rnd-apis.crecientech.com;
-
-        location / {
-            # Change the port as per requirement
-            proxy_pass http://localhost:3000;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_cache_bypass $http_upgrade;
-        }
-    }
-    ```
-
-    ```bash
-    # Test nginx configuration
-    sudo nginx -t
-
-    # Reload nginx
-    sudo systemctl reload nginx
-    ```
-
-4. Now, follow the [Installation](#installation) steps to setup the project. After the process, configure SSL encryption (for https) using certbot if required.
-
-    ```bash
-    # Install certbot
-    sudo apt-get update
-    sudo apt-get install certbot python3-certbot-nginx
-
-    # Obtain SSL certificate 
-    # Make sure to change the domain name as per requirement
-    sudo certbot --nginx -d pdnet-rnd-web.crecientech.com -d pdnet-rnd-apis.crecientech.com
-    ```
-
 ## Installation
 
 1. Clone the repository
 
     ```bash
-    git clone https://github.com/Crecientech-Pvt-Ltd/PDNET_PROJECT.git && cd PDnet
+    git clone https://github.com/Crecientech-Pvt-Ltd/tdp-platform.git && cd tdp-platform
     ```
 
 2. Fill environment variables in `.env`, `frontend/.env`  `backend/.env` using the `.env.example` files in their respective directory.
@@ -158,7 +49,7 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
     > [!NOTE]
     > This is not the most conventional & intuitive place to keep the videos, but this was hard-coded in the frontend code, so directed to keep the videos in this folder. This will soon be changed and once done will be updated in the manual. Also, this workflow will be gradually improved to avoid these steps, but currently the video size exceeds 100MB limit of commit size, so this is the workaround.
 
-    [Video Files](https://drive.google.com/drive/u/2/folders/1ZnQ7802kUhu9uGyD7rXONvULb4ELSv4l)
+    [Video Files](https://drive.google.com/drive/folders/1ZnQ7802kUhu9uGyD7rXONvULb4ELSv4l)
     
 
 5. Docker compose up the database and seed the data.
@@ -166,7 +57,7 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
     > In case, the server doesn't have the dump data. Transfer the files using the following command:
     > ```bash
     > # Transfer files to the server
-    > scp -r <source-path> <username>@<server-ip>:<destination-path>
+    > scp -r <source-path> <username>@<server-ip>:<destination-path>/data/backup
     > ```
     > > 💡 **NOTE**  
     > > Replace `<destination-path>` with the path specified in the [docker-compose.yml](../docker-compose.yml) file.
@@ -177,12 +68,12 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
     > >     volumes:
     > >       - <destination-path>:/var/lib/neo4j/import
     > > ```
-    > > **For this project, bydeault in [docker-compose.yml](../docker-compose.yml) file, the path to keep the database dump is inside [scripts](./scripts) folder.** 
-    
+    > > **For this project, by default in [docker-compose.yml](../docker-compose.yml) file, the path to keep the database dump is inside [backup](./scripts/data/backup/) folder.**
+
     #### Database Load Command
     ```bash
-    docker compose up -d --build
-    docker exec -it neo4j neo4j-admin database load --from-path=/var/lib/neo4j/import/ pdnet
+    docker compose up -d neo4j
+    docker exec -it neo4j neo4j-admin database load --from-path=/var/lib/neo4j/import/data/backup pdnet
     # Change the username (default username is neo4j) and password
     docker exec -it neo4j cypher-shell -u neo4j -p $NEO4J_PASSWORD "CREATE DATABASE pdnet; START pdnet;"
     ```
@@ -191,13 +82,14 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
 
     ```bash
     # Change the folder permissions (you can have more granular control over this by changing the numbers)
-    sudo chmod -R 777 scripts
+    sudo chmod -R 755 scripts
     ```
 
-7. Once, data is seeded successfully and database is online. Restart the neo4j service.
+7. Once, data is seeded successfully and database is ready. Now restart the neo4j service and start all the services.
 
     ```bash
-    docker compose restart neo4j
+    docker compose down neo4j
+    docker compose up -d --build
     ```
 
 ## More Information
@@ -210,12 +102,26 @@ For more information of backend and frontend, refer to the respective README fil
 
     ```bash
     # Dump the database
-    docker exec -it neo4j neo4j-admin database dump --to-path=/var/lib/neo4j/import/dump pdnet
+    docker exec -it neo4j neo4j-admin database dump --overwrite-destination --to-path=/var/lib/neo4j/import/data/backup pdnet 
     ```
 
-  Now, the database dump is available in the [dump](./scripts/dump/) folder. If there's already a dump file present, it might not work. So, it's better to rename the existing dump file before exporting the data. This dump file is now ready to be imported into another database.
+  Now, the database dump is available in the [backup](./scripts/data/backup) folder. If there's already a dump file present, it will overwrite it. It's better to rename the existing dump file before exporting the data in case something goes wrong, you do not lose the data. This dump file is now ready to be imported into another database.
 
-2. The database dump can be imported into another database using the command written [here](#database-load-command).
+2. The database dump can be imported into another database using the following command.
+
+    ```bash
+    # First, make the database offline
+    docker exec -it neo4j cypher-shell -u neo4j -p $NEO4J_PASSWORD "STOP DATABASE pdnet;"
+    # Now, you can import the database dump
+    docker exec -it neo4j neo4j-admin database load --overwrite-destination --from-path=/var/lib/neo4j/import/data/backup pdnet
+    # Now, restart the container
+    docker compose down neo4j && docker compose up -d neo4j
+    # Now, you can start the database
+    docker exec -it neo4j cypher-shell -u neo4j -p $NEO4J_PASSWORD "CREATE DATABASE pdnet IF NOT EXISTS; START DATABASE pdnet;"
+    ```
+
+    > 💡 **NOTE**  
+    > The above command will overwrite the existing database. If you want to keep the existing database, you can create a new database and import the data into that database and then switch to the new database.
 
 3. For ingesting data into the database, refer to the [Scripts Usage Documentation](./scripts/README.md).
 
