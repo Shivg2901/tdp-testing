@@ -352,7 +352,7 @@ FIG4`,
             </AlertDialog>
           </form>
         </ResizablePanel>
-        <ResizableHandle withHandle className='hidden md:flex' />
+        <ResizableHandle withHandle className='hidden md:flex overflow-hidden' />
         <ResizablePanel className='h-[55vh] hidden md:block' defaultSize={25} minSize={15}>
           <History history={history} setHistory={setHistory} setFormData={setFormData} />
         </ResizablePanel>
