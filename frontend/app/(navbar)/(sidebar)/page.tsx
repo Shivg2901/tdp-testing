@@ -176,7 +176,7 @@ export default function Home() {
   };
 
   return (
-    <div className='mx-auto rounded-lg shadow-md p-4 min-h-[60vh]'>
+    <div className='mx-auto rounded-lg shadow-md p-4 min-h-[60vh] w-full max-w-[1200px]'>
       <h2 className='text-2xl font-semibold mb-6'>Search by Multiple Proteins</h2>
       <ResizablePanelGroup direction='horizontal' className='gap-4'>
         <ResizablePanel defaultSize={75} minSize={65}>
