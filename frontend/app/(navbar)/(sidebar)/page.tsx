@@ -353,7 +353,7 @@ FIG4`,
           </form>
         </ResizablePanel>
         <ResizableHandle withHandle className='hidden md:flex' />
-        <ResizablePanel className='h-[55vh] hidden md:block overflow-hidden' defaultSize={25} minSize={15}>
+        <ResizablePanel className='h-[55vh] hidden md:block' defaultSize={25} minSize={15}>
           <History history={history} setHistory={setHistory} setFormData={setFormData} />
         </ResizablePanel>
       </ResizablePanelGroup>
