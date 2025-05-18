@@ -105,7 +105,7 @@ export default function History({
                     <Input
                       type='text'
                       name='title'
-                      className='h-fit w-fit border-none shadow-none p-1 underline'
+                      className='bg-transparent h-fit w-fit border-none shadow-none p-1 underline'
                       defaultValue={item.title}
                       onBlur={e => {
                         const newHistory = history.map(historyItem =>

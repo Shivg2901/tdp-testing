@@ -10,7 +10,7 @@ export default function SideBarLayout({ children }: { children: React.ReactNode 
   return (
     <div className='container mx-auto p-4'>
       <div className='w-full flex gap-8 flex-col md:flex-row'>
-        <div className='relative md:w-[35%] w-full shadow-teal-900 shadow-md rounded-md'>
+        <div className='relative md:w-[25%] w-full shadow-teal-900 shadow-md rounded-md'>
           <div className='absolute inset-0 bg-black/40 rounded-md z-10' />
           <Image src='/image/sideBarBg.jpg' alt='sideBarBg' priority className='rounded-md object-cover' fill />
           <ul className='relative z-10 p-4 grid gap-2 font-semibold text-white'>

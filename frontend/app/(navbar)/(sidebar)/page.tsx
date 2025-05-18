@@ -26,6 +26,8 @@ import { useLazyQuery } from '@apollo/client';
 import { AlertTriangle, Info, Loader } from 'lucide-react';
 import React, { type ChangeEvent } from 'react';
 import { toast } from 'sonner';
+import History, { type HistoryItem } from '@/components/History';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 
 export default function Home() {
   const [verifyGenes, { data, loading }] = useLazyQuery<GeneVerificationData, GeneVerificationVariables>(
@@ -48,6 +50,12 @@ export default function Home() {
     interactionType: 'PPI',
     minScore: '0.9',
   });
+
+  const [history, setHistory] = React.useState<HistoryItem[]>([]);
+
+  React.useEffect(() => {
+    setHistory(JSON.parse(localStorage.getItem('history') ?? '[]'));
+  }, []);
 
   React.useEffect(() => {
     const escapeListener = (event: KeyboardEvent) => {
@@ -140,6 +148,18 @@ export default function Home() {
       });
       return;
     }
+
+    const newHistory = [
+      {
+        title: `Graph: ${history.length + 1}`,
+        geneIDs: seedGenes,
+        ...formData,
+      },
+      ...history,
+    ];
+    setHistory(newHistory);
+    localStorage.setItem('history', JSON.stringify(newHistory));
+
     localStorage.setItem(
       'graphConfig',
       JSON.stringify({
@@ -156,7 +176,7 @@ export default function Home() {
   };
 
   return (
-    <div className='mx-auto border rounded-lg shadow-md h-full'>
+    <div className='mx-auto rounded-lg shadow-md border min-h-[80vh]'>
       <h2
         style={{
           background: 'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
@@ -165,183 +185,190 @@ export default function Home() {
       >
         Search by Multiple Proteins
       </h2>
-      <form onSubmit={handleSubmit}>
-        <div className='space-y-4 px-8'>
-          <div>
-            <div className='flex justify-between'>
-              <Label htmlFor='seedGenes'>Seed Genes</Label>
-              <p className='text-zinc-500'>
-                (one-per-line or CSV; examples: {/* biome-ignore lint/a11y/useKeyWithClickEvents: required */}
-                <span
-                  className='underline cursor-pointer'
-                  onClick={() => {
-                    setFormData({
-                      ...formData,
-                      seedGenes: 'MAPT, STX6, EIF2AK3, MOBP, DCTN1, LRRK2',
-                    });
-                  }}
-                >
-                  #1
-                </span>{' '}
-                {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-                <span
-                  className='underline cursor-pointer'
-                  onClick={() => {
-                    setFormData({
-                      ...formData,
-                      seedGenes: `ENSG00000122359
+      <ResizablePanelGroup direction='horizontal' className='gap-4 p-4'>
+        <ResizablePanel defaultSize={75} minSize={65}>
+          <form onSubmit={handleSubmit}>
+            <div className='space-y-4'>
+              <div>
+                <div className='flex justify-between'>
+                  <Label htmlFor='seedGenes'>Seed Genes</Label>
+                  <p className='text-zinc-500'>
+                    (one-per-line or CSV; examples:
+                    <span
+                      className='underline cursor-pointer'
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          seedGenes: 'MAPT, STX6, EIF2AK3, MOBP, DCTN1, LRRK2',
+                        });
+                      }}
+                    >
+                      #1
+                    </span>{' '}
+                    <span
+                      className='underline cursor-pointer'
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          seedGenes: `ENSG00000122359
 ENSG00000100823
 ENSG00000214944
 ENSG00000172995
 ENSG00000147894
 ENSG00000162063`,
-                    });
-                  }}
-                >
-                  #2
-                </span>{' '}
-                {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-                <span
-                  className='underline cursor-pointer'
-                  onClick={() => {
-                    setFormData({
-                      ...formData,
-                      seedGenes: `DCTN1
+                        });
+                      }}
+                    >
+                      #2
+                    </span>{' '}
+                    <span
+                      className='underline cursor-pointer'
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          seedGenes: `DCTN1
 DNAJC7
 ERBB4
 ERLIN1
 EWSR1
 FIG4`,
-                    });
-                  }}
-                >
-                  #3
-                </span>
-                )
-              </p>
-            </div>
-            <Textarea
-              rows={6}
-              id='seedGenes'
-              placeholder='Type seed genes in either , or new line separated format'
-              className='mt-1'
-              value={formData.seedGenes}
-              onChange={handleSeedGenesChange}
-              required
-            />
-            <center>OR</center>
-            <Label htmlFor='seedFile'>Upload Text File</Label>
-            <Input
-              id='seedFile'
-              type='file'
-              accept='.txt'
-              className='border-2 hover:border-dashed cursor-pointer h-9'
-              onChange={handleFileRead}
-            />
-          </div>
-          <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
-            <div className='space-y-1'>
-              <div className='flex items-end gap-1'>
-                <Label htmlFor='diseaseMap'>Disease Map</Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info size={12} />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Contains the disease name to be mapped taken from OpenTargets Portal. <br />
-                    <b>Note:</b> To search disease using its ID, type disease ID in parentheses.
-                  </TooltipContent>
-                </Tooltip>
+                        });
+                      }}
+                    >
+                      #3
+                    </span>
+                    )
+                  </p>
+                </div>
+                <Textarea
+                  rows={6}
+                  id='seedGenes'
+                  placeholder='Type seed genes in either , or new line separated format'
+                  className='mt-1'
+                  value={formData.seedGenes}
+                  onChange={handleSeedGenesChange}
+                  required
+                />
+                <center>OR</center>
+                <Label htmlFor='seedFile'>Upload Text File</Label>
+                <Input
+                  id='seedFile'
+                  type='file'
+                  accept='.txt'
+                  className='border-2 hover:border-dashed cursor-pointer h-9'
+                  onChange={handleFileRead}
+                />
               </div>
-              <VirtualizedCombobox
-                data={diseaseData?.map(val => `${val.name} (${val.ID})`)}
-                value={formData.diseaseMap}
-                onChange={val => typeof val === 'string' && handleSelect(val, 'diseaseMap')}
-                placeholder='Search Disease...'
-                loading={diseaseData === null}
-                className='w-full'
+              <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
+                <div className='space-y-1'>
+                  <div className='flex items-end gap-1'>
+                    <Label htmlFor='diseaseMap'>Disease Map</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info size={12} />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Contains the disease name to be mapped taken from OpenTargets Portal. <br />
+                        <b>Note:</b> To search disease using its ID, type disease ID in parentheses.
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <VirtualizedCombobox
+                    data={diseaseData?.map(val => `${val.name} (${val.ID})`)}
+                    value={formData.diseaseMap}
+                    onChange={val => typeof val === 'string' && handleSelect(val, 'diseaseMap')}
+                    placeholder='Search Disease...'
+                    loading={diseaseData === null}
+                    className='w-full hover:bg-transparent hover:text-current'
+                  />
+                </div>
+                {graphConfig.map(config => (
+                  <div key={config.id} className='space-y-1'>
+                    <div className='flex items-end gap-1'>
+                      <Label htmlFor={config.id}>{config.name}</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info size={12} />
+                        </TooltipTrigger>
+                        <TooltipContent>{config.tooltipContent}</TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Select required value={formData[config.id]} onValueChange={val => handleSelect(val, config.id)}>
+                      <SelectTrigger id={config.id}>
+                        <SelectValue placeholder='Select...' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {config.options.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </div>
+              <center>
+                <Button
+                  type='submit'
+                  style={{
+                    background:
+                      'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
+                  }}
+                  className='w-3/4 mb-4'
+                >
+                  {loading ? (
+                    <>
+                      <Loader className='animate-spin mr-2' size={20} />
+                      Verifying {geneIDs.length} genes...
+                    </>
+                  ) : (
+                    'Submit'
+                  )}
+                </Button>
+              </center>
+              <PopUpTable
+                setTableOpen={setTableOpen}
+                tableOpen={tableOpen}
+                handleGenerateGraph={handleGenerateGraph}
+                data={data}
+                geneIDs={geneIDs}
               />
             </div>
-            {graphConfig.map(config => (
-              <div key={config.id} className='space-y-1'>
-                <div className='flex items-end gap-1'>
-                  <Label htmlFor={config.id}>{config.name}</Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info size={12} />
-                    </TooltipTrigger>
-                    <TooltipContent>{config.tooltipContent}</TooltipContent>
-                  </Tooltip>
-                </div>
-                <Select required value={formData[config.id]} onValueChange={val => handleSelect(val, config.id)}>
-                  <SelectTrigger id={config.id}>
-                    <SelectValue placeholder='Select...' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {config.options.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ))}
-          </div>
-          <center>
-            <Button
-              type='submit'
-              style={{
-                background: 'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
-              }}
-              className='w-3/4 mb-4'
-            >
-              {loading ? (
-                <>
-                  <Loader className='animate-spin mr-2' size={20} />
-                  Verifying {geneIDs.length} genes...
-                </>
-              ) : (
-                'Submit'
-              )}
-            </Button>
-          </center>
-          <PopUpTable
-            setTableOpen={setTableOpen}
-            tableOpen={tableOpen}
-            handleGenerateGraph={handleGenerateGraph}
-            data={data}
-            geneIDs={geneIDs}
-          />
-        </div>
-        <AlertDialog open={showAlert}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className='text-red-500 flex items-center'>
-                <AlertTriangle size={24} className='mr-2' />
-                Warning!
-              </AlertDialogTitle>
-              <AlertDialogDescription className='text-black'>
-                You are about to generate a graph with a large number of nodes/edges. This may take a long time to
-                complete.
-              </AlertDialogDescription>
-              <p className='text-black font-semibold'>Are you sure you want to proceed?</p>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setShowAlert(false)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  setShowAlert(false);
-                  handleGenerateGraph(true);
-                  document.body.removeAttribute('style');
-                }}
-              >
-                Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </form>
+            <AlertDialog open={showAlert}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className='text-red-500 flex items-center'>
+                    <AlertTriangle size={24} className='mr-2' />
+                    Warning!
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className='text-black'>
+                    You are about to generate a graph with a large number of nodes/edges. This may take a long time to
+                    complete.
+                  </AlertDialogDescription>
+                  <p className='text-black font-semibold'>Are you sure you want to proceed?</p>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setShowAlert(false)}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      setShowAlert(false);
+                      handleGenerateGraph(true);
+                      document.body.removeAttribute('style');
+                    }}
+                  >
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </form>
+        </ResizablePanel>
+        <ResizableHandle withHandle className='hidden md:flex' />
+        <ResizablePanel className='h-[65vh] hidden md:block' defaultSize={25} minSize={15}>
+          <History history={history} setHistory={setHistory} setFormData={setFormData} />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }
