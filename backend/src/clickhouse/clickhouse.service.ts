@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ClickHouseClient, createClient } from '@clickhouse/client';
 
 interface GeneRow {
-  gene_id: string;
+  gene_name: string;
 }
 
 @Injectable()
@@ -21,7 +21,7 @@ export class ClickhouseService {
     limit: number,
   ): Promise<string[]> {
     const query = `
-      SELECT gene_id
+      SELECT gene_name
       FROM overall_association_score
       WHERE disease_id = {diseaseId:String}
       ORDER BY score DESC
@@ -38,7 +38,7 @@ export class ClickhouseService {
 
       for await (const rows of resultSet.stream<GeneRow>()) {
         for (const row of rows) {
-          geneIds.push(row.json().gene_id);
+          geneIds.push(row.json().gene_name);
         }
       }
 
