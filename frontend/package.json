@@ -52,6 +52,7 @@
     "graphology-communities-louvain": "^2.0.2",
     "graphology-layout": "^0.6.1",
     "graphology-types": "^0.24.8",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.487.0",
     "motion": "^12.6.3",
     "next": "^14.2.28",
