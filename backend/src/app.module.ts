@@ -8,8 +8,6 @@ import { AlgorithmModule } from './algorithm/algorithm.module';
 import { RedisModule } from './redis/redis.module';
 import { RedisService } from './redis/redis.service';
 import { FeedbackModule } from './feedback/feedback.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Feedback } from './feedback/feedback.model';
 import { ClickhouseModule } from './clickhouse/clickhouse.module';
 
 @Module({
@@ -40,21 +38,6 @@ import { ClickhouseModule } from './clickhouse/clickhouse.module';
     },
     FeedbackModule,
     ClickhouseModule,
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('POSTGRES_HOST', 'localhost'),
-        port: parseInt(configService.get<string>('POSTGRES_PORT', '5432'), 10),
-        username: configService.get<string>('POSTGRES_USER', 'pdnetuser'),
-        password: configService.get<string>('POSTGRES_PASSWORD', 'pdnetpass'),
-        database: configService.get<string>('POSTGRES_DB', 'pdnet'),
-        entities: [Feedback],
-        synchronize: true,
-        autoLoadEntities: true,
-      }),
-    }),
   ],
   controllers: [AppController],
 })

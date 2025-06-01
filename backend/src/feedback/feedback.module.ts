@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { ClickhouseModule } from '../clickhouse/clickhouse.module';
 import { FeedbackController } from './feedback.controller';
 import { FeedbackService } from './feedback.service';
-import { Feedback } from './feedback.model';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Feedback])],
+  imports: [ClickhouseModule],
   controllers: [FeedbackController],
   providers: [FeedbackService],
 })

@@ -12,7 +12,7 @@ export class ClickhouseService {
 
   constructor() {
     this.client = createClient({
-      host: process.env.CLICKHOUSE_URL || 'http://localhost:8123',
+      url: process.env.CLICKHOUSE_URL || 'http://localhost:8123',
     });
   }
 
