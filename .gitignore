@@ -4,4 +4,5 @@ node_modules
 .vscode
 .idea
 scripts/**/*.csv
+scripts/**/*.tsv
 scripts/**/*.cypher
