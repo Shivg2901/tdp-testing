@@ -4,10 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { envURL } from '@/lib/utils';
-import { ArrowLeft, CheckCircle, Clock, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 
 interface Feedback {
   id: string;
@@ -51,14 +50,6 @@ export default function ViewFeedbacks() {
     setError(null);
     fetchFeedbacks();
   }, [filter, page, PAGE_SIZE]);
-
-  const copyToClipboard = (id: string) => {
-    navigator.clipboard.writeText(id);
-    toast('ID copied to clipboard', {
-      description: id,
-      duration: 3000,
-    });
-  };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -170,15 +161,9 @@ export default function ViewFeedbacks() {
                         </span>
                       )}
                     </Badge>
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      onClick={() => copyToClipboard(feedback.id)}
-                      className='flex items-center gap-1 mt-2'
-                    >
-                      <Copy size={14} />
-                      Copy ID
-                    </Button>
+                    <span className='text-xs text-muted-foreground mt-2'>
+                      <b>ID:</b> {feedback.id}
+                    </span>
                   </div>
                 </div>
                 <div className='bg-gray-50 shadow shadow-primary dark:bg-gray-900 p-3 rounded-md mb-3 whitespace-pre-wrap'>
@@ -187,7 +172,6 @@ export default function ViewFeedbacks() {
               </div>
             ))
           )}
-          {/* Pagination controls */}
           {totalPages > 1 && (
             <div className='flex justify-center items-center gap-4 mt-6'>
               <Button
