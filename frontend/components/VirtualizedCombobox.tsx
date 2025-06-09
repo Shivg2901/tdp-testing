@@ -17,6 +17,7 @@ interface VirtualizedCommandProps {
   loading?: boolean;
   width?: string;
   multiselect?: boolean;
+  showSelectAll?: boolean;
 }
 
 const VirtualizedCommand = ({
@@ -27,6 +28,7 @@ const VirtualizedCommand = ({
   loading,
   width,
   multiselect = false,
+  showSelectAll = true,
 }: VirtualizedCommandProps) => {
   const [filteredOptions, setFilteredOptions] = React.useState<(string | GenePropertyMetadata)[]>(options);
   const parentRef = React.useRef<HTMLDivElement>(null);
@@ -55,7 +57,7 @@ const VirtualizedCommand = ({
   return (
     <Command style={{ width }} shouldFilter={false}>
       <CommandInput onValueChange={handleSearch} placeholder={placeholder}>
-        {multiselect && (
+        {multiselect && showSelectAll && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -134,6 +136,7 @@ interface VirtualizedComboboxProps {
   onChange: (value: string | Set<string>) => void;
   align?: 'start' | 'end' | 'center';
   multiselect?: boolean;
+  showSelectAll?: boolean;
 }
 
 export function VirtualizedCombobox({
@@ -146,6 +149,7 @@ export function VirtualizedCombobox({
   onChange,
   align = 'start',
   multiselect = false,
+  showSelectAll = true,
 }: VirtualizedComboboxProps) {
   const [open, setOpen] = React.useState<boolean>(false);
 
@@ -203,6 +207,7 @@ export function VirtualizedCombobox({
           }}
           loading={loading}
           width={width}
+          showSelectAll={showSelectAll}
         />
       </PopoverContent>
     </Popover>
