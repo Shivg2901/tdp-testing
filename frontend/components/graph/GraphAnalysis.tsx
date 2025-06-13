@@ -14,7 +14,13 @@ import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 
-export function GraphAnalysis({ highlightedNodesRef }: { highlightedNodesRef?: React.MutableRefObject<Set<string>> }) {
+export function GraphAnalysis({
+  highlightedNodesRef,
+  hubGenesNodesRef,
+}: {
+  highlightedNodesRef?: React.MutableRefObject<Set<string>>;
+  hubGenesNodesRef: React.MutableRefObject<Set<string>>;
+}) {
   const sigma = useSigma<NodeAttributes, EdgeAttributes>();
   const graph = sigma.getGraph();
   const radialAnalysis = useStore(state => state.radialAnalysis);
@@ -111,6 +117,7 @@ export function GraphAnalysis({ highlightedNodesRef }: { highlightedNodesRef?: R
         const degree = graph.degree(node);
         if (degree >= radialAnalysis.hubGeneEdgeCount) {
           attr.type = 'border';
+          hubGenesNodesRef.current.add(node);
         } else if (highlightedNodesRef?.current.has(node)) {
           attr.type = 'highlight';
         } else {

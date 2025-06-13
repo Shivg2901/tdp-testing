@@ -36,12 +36,6 @@ export function GraphExport({ highlightedNodesRef }: { highlightedNodesRef?: Rea
       Events.EXPORT,
       async ({ format, all, csvType }: EventMessage[Events.EXPORT] & { csvType?: string }) => {
         switch (format) {
-          case 'json': {
-            const serializedGraph = sigma.getGraph().export();
-            const data = JSON.stringify(serializedGraph, null, 2);
-            downloadFile(data, 'application/json', projectTitle);
-            break;
-          }
           case 'csv': {
             if (!all && (!highlightedNodesRef || highlightedNodesRef.current.size === 0)) {
               toast.warning('No nodes selected', {
@@ -114,20 +108,27 @@ export function GraphExport({ highlightedNodesRef }: { highlightedNodesRef?: Rea
               }),
             );
             const nodeSet = new Set(nodeIds);
-            const interactionRows: string[] = [];
-            graph.forEachEdge((edgeId, attributes, source, target) => {
-              if (nodeSet.has(source) && nodeSet.has(target)) {
-                interactionRows.push(`${source},${target},${attributes.score ?? ''}`);
-              }
-            });
-            const interactionCsv = interactionRows.length > 0 ? interactionRows.join('\n') : '';
-
+            const interactionCsv = unparse(
+              graph.reduceEdges(
+                (acc, _edgeId, attributes, source, target) => {
+                  if (nodeSet.has(source) && nodeSet.has(target)) {
+                    acc.push({
+                      Source: source,
+                      Target: target,
+                      Score: attributes.score ?? 0,
+                    });
+                  }
+                  return acc;
+                },
+                [] as { Source: string; Target: string; Score: number }[],
+              ),
+            );
             // Handle csvType
             if (csvType === 'universal') {
-              downloadFile(universalCsv, 'application/csv;charset=utf-8', `${projectTitle}-universal.csv`);
+              downloadFile(universalCsv, 'text/csv', `${projectTitle}-universal.csv`);
             } else if (csvType === 'interaction') {
               if (interactionCsv) {
-                downloadFile(interactionCsv, 'application/csv;charset=utf-8', `${projectTitle}-interaction.csv`);
+                downloadFile(interactionCsv, 'text/csv', `${projectTitle}-interaction.csv`);
               } else {
                 toast.info('No interactions found for selected nodes.', {
                   cancel: { label: 'Close', onClick() {} },

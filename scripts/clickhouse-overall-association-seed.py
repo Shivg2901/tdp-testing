@@ -43,14 +43,14 @@ CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
 ) ENGINE = MergeTree()
 ORDER BY (disease_id, score)
 '''
-resp = requests.post(f'{CLICKHOUSE_URL}/?query={create_query}')
+resp = requests.post(f'{CLICKHOUSE_URL}', params={ 'query': create_query })
 if resp.status_code != 200:
     print("Error creating table:", resp.text)
     sys.exit(1)
 
 csv_data = df.to_csv(index=False, header=False)
 insert_query = f'INSERT INTO {TABLE_NAME} FORMAT CSV'
-resp = requests.post(f'{CLICKHOUSE_URL}/?query={insert_query}', data=csv_data.encode('utf-8'))
+resp = requests.post(f'{CLICKHOUSE_URL}', params={ 'query': insert_query }, data=csv_data.encode('utf-8'))
 
 if resp.status_code == 200:
     print(f'Inserted {len(df)} rows from {csv_file}.')

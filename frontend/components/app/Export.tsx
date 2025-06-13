@@ -1,4 +1,6 @@
-import { Events, eventEmitter } from '@/lib/utils';
+'use client';
+
+import { EventMessage, Events, eventEmitter } from '@/lib/utils';
 import { DropdownMenuContent } from '@radix-ui/react-dropdown-menu';
 import { FolderUp } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -32,17 +34,11 @@ export function Export() {
   };
 
   const handleCsvExport = () => {
-    let csvType: 'universal' | 'interaction' | 'both' | undefined;
-    if (csvSelections.universal && csvSelections.interaction) {
-      csvType = 'both';
-    } else if (csvSelections.universal) {
-      csvType = 'universal';
-    } else if (csvSelections.interaction) {
-      csvType = 'interaction';
-    } else {
-      return;
-    }
-    eventEmitter.emit(Events.EXPORT, { format: 'csv', all: true, csvType });
+    const { universal, interaction } = csvSelections;
+    if (!universal && !interaction) return;
+
+    const csvType = universal && interaction ? 'both' : universal ? 'universal' : 'interaction';
+    eventEmitter.emit(Events.EXPORT, { format: 'csv', all: true, csvType } satisfies EventMessage[Events.EXPORT]);
   };
 
   return (
@@ -76,9 +72,7 @@ export function Export() {
                 <Button
                   size='sm'
                   className='mt-2'
-                  onClick={() => {
-                    handleCsvExport();
-                  }}
+                  onClick={handleCsvExport}
                   disabled={!csvSelections.universal && !csvSelections.interaction}
                 >
                   Export

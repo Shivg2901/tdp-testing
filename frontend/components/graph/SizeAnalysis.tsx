@@ -2,6 +2,7 @@
 
 import { useStore } from '@/lib/hooks';
 import type { EdgeAttributes, NodeAttributes, OtherSection } from '@/lib/interface';
+import { P_VALUE_REGEX } from '@/lib/utils';
 import { useSigma } from '@react-sigma/core';
 import { scaleLinear } from 'd3-scale';
 import { useEffect } from 'react';
@@ -84,10 +85,11 @@ export function SizeAnalysis() {
         return attr;
       });
     } else if (selectedRadioNodeSize === 'LogFC' && typeof selectedNodeSizeProperty === 'string') {
+      const isPValue = P_VALUE_REGEX.test(selectedNodeSizeProperty);
       const max = Object.values(universalData).reduce((acc, cur) => {
         const valString = (cur[userOrDiseaseIdentifier] as OtherSection).LogFC?.[selectedNodeSizeProperty];
         if (!valString) return acc;
-        const value = Math.abs(+valString);
+        const value = isPValue ? -Math.log10(+valString) : Math.abs(+valString);
         if (Number.isNaN(value)) return acc;
         return Math.max(acc, value);
       }, 0);
@@ -96,7 +98,7 @@ export function SizeAnalysis() {
         const val = (universalData[node]?.[userOrDiseaseIdentifier] as OtherSection)?.[selectedRadioNodeSize][
           selectedNodeSizeProperty
         ];
-        if (val != null && !Number.isNaN(+val)) attr.size = sizeScale(Math.abs(+val));
+        if (val != null && !Number.isNaN(+val)) attr.size = sizeScale(isPValue ? -Math.log10(+val) : Math.abs(+val));
         else attr.size = 0.5;
         return attr;
       });

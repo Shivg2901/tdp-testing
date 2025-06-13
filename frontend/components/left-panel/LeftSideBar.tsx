@@ -17,24 +17,24 @@ import type {
   OtherSection,
   RadioOptions,
 } from '@/lib/interface';
+import { envURL } from '@/lib/utils';
 import { useLazyQuery } from '@apollo/client';
 import { AnimatePresence, motion } from 'motion/react';
 import { redirect } from 'next/navigation';
 import React, { useEffect, useRef } from 'react';
 import { GeneSearch, NodeColor, NodeSize } from '.';
 import { Export, FileSheet } from '../app';
+import { DiseaseMapCombobox } from '../DiseaseMapCombobox';
 import { RadialAnalysis } from '../right-panel';
 import { Label } from '../ui/label';
 import { ScrollArea } from '../ui/scroll-area';
 import { Spinner } from '../ui/spinner';
-import { VirtualizedCombobox } from '../VirtualizedCombobox';
-import { envURL } from '@/lib/utils';
 
 export function LeftSideBar() {
   const diseaseName = useStore(state => state.diseaseName);
   const geneIDs = useStore(state => state.geneIDs);
   const bringCommon = useRef<boolean>(true);
-  const [diseaseData, setDiseaseData] = React.useState<GetDiseaseData | null>(null);
+  const [diseaseData, setDiseaseData] = React.useState<GetDiseaseData | undefined>(undefined);
   const [diseaseMap, setDiseaseMap] = React.useState<string>('amyotrophic lateral sclerosis (MONDO_0004976)');
   useEffect(() => {
     const graphConfig = localStorage.getItem('graphConfig');
@@ -220,17 +220,15 @@ export function LeftSideBar() {
             transition={{ duration: 0.1, ease: 'easeInOut' }}
             animate
           >
-            <VirtualizedCombobox
+            <DiseaseMapCombobox
               value={diseaseMap}
-              placeholder='Search Disease...'
               onChange={d => typeof d === 'string' && handleDiseaseChange(d)}
-              data={diseaseData?.map(val => `${val.name} (${val.ID})`)}
-              loading={diseaseData === null}
+              data={diseaseData}
               className='w-full'
             />
           </motion.div>
           <AnimatePresence>
-            {(!called || (called && loading) || universalLoading) && (
+            {(!called || (called && loading) || diseaseData === undefined || universalLoading) && (
               <motion.div
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}

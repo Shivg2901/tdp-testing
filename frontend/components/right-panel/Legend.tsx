@@ -7,9 +7,11 @@ import { useEffect, useState } from 'react';
 import { BinaryLegend, HeatmapLegend } from '../legends';
 import { Button } from '../ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { P_VALUE_REGEX } from '@/lib/utils';
 
 export function Legend() {
   const selectedRadioNodeColor = useStore(state => state.selectedRadioNodeColor);
+  const selectedNodeColorProperty = useStore(state => state.selectedNodeColorProperty);
   const showEdgeColor = useStore(state => state.showEdgeColor);
   const [minScore, setMinScore] = useState(0);
   const defaultNodeColor = useStore(state => state.defaultNodeColor);
@@ -33,12 +35,21 @@ export function Legend() {
           selectedRadioNodeColor === 'Pathway' ? (
             <BinaryLegend />
           ) : selectedRadioNodeColor === 'LogFC' || selectedRadioNodeColor === 'Genetics' ? (
-            <HeatmapLegend
-              title={PROPERTY_TYPE_LABEL_MAPPING[selectedRadioNodeColor]}
-              domain={[-1, 0, 1]}
-              range={['green', '#E2E2E2', 'red']}
-              divisions={10}
-            />
+            typeof selectedNodeColorProperty === 'string' && P_VALUE_REGEX.test(selectedNodeColorProperty) ? (
+              <HeatmapLegend
+                title='P-Value'
+                range={[defaultNodeColor, 'red']}
+                startLabel='Low Significance'
+                endLabel='High Significance'
+              />
+            ) : (
+              <HeatmapLegend
+                title={PROPERTY_TYPE_LABEL_MAPPING[selectedRadioNodeColor]}
+                domain={[-1, 0, 1]}
+                range={['green', '#E2E2E2', 'red']}
+                divisions={10}
+              />
+            )
           ) : selectedRadioNodeColor === 'Druggability' || selectedRadioNodeColor === 'OpenTargets' ? (
             <HeatmapLegend
               title={PROPERTY_TYPE_LABEL_MAPPING[selectedRadioNodeColor]}

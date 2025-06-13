@@ -19,9 +19,11 @@ import drawEdgeHover from '@/lib/graph/canvas-edge-hover';
 export function GraphEvents({
   clickedNodesRef,
   highlightedNodesRef,
+  hubGenesNodesRef,
 }: {
   clickedNodesRef?: React.MutableRefObject<Set<string>>;
   highlightedNodesRef: React.MutableRefObject<Set<string>>;
+  hubGenesNodesRef: React.MutableRefObject<Set<string>>;
 }) {
   const sigma = useSigma<NodeAttributes, EdgeAttributes>();
   const nodeSearchQuery = useStore(state => state.nodeSearchQuery);
@@ -88,12 +90,13 @@ export function GraphEvents({
   const handleSelectedNodes = useCallback(
     (_selectedNodes: string[]) => {
       const graph = sigma.getGraph();
-      const temp = _selectedNodes.map(node => ({
-        Gene_Name: graph.getNodeAttribute(node, 'label') as string,
-        ID: node,
-        Description: graph.getNodeAttribute(node, 'description') as string,
-      }));
-      useStore.setState({ selectedNodes: temp });
+      useStore.setState({
+        selectedNodes: _selectedNodes.map(node => ({
+          Gene_Name: graph.getNodeAttribute(node, 'label') as string,
+          ID: node,
+          Description: graph.getNodeAttribute(node, 'description') as string,
+        })),
+      });
     },
     [sigma],
   );
@@ -190,7 +193,7 @@ export function GraphEvents({
         });
         for (const node of graph.extremities(e.edge)) {
           graph.updateNodeAttributes(node, attr => {
-            attr.type = 'border';
+            attr.type = 'normal';
             attr.highlighted = true;
             return attr;
           });
@@ -224,6 +227,11 @@ export function GraphEvents({
           graph.updateNodeAttributes(node, attr => {
             if (highlightedNodesRef.current.has(node)) {
               attr.type = 'highlight';
+            } else if (clickedNodesRef?.current.has(node)) {
+              attr.type = 'border';
+            } else if (hubGenesNodesRef?.current.has(node)) {
+              attr.type = 'border';
+              attr.highlighted = false;
             } else {
               attr.type = 'circle';
               attr.highlighted = false;
@@ -261,8 +269,7 @@ export function GraphEvents({
           setDraggedNode(null);
         } else if (isSelecting) {
           handleMouseUp();
-        }
-        if (clickedNode) {
+        } else if (clickedNode) {
           clickedNodesRef?.current.delete(clickedNode);
           graph.forEachNeighbor(clickedNode, (neighbor, attr) => {
             clickedNodesRef?.current.delete(neighbor);
@@ -285,8 +292,8 @@ export function GraphEvents({
         if (e.original.shiftKey) handleMouseDown(e.original as MouseEvent);
         else {
           for (const node of _selectedNodes) {
-            if (highlightedNodesRef.current.has(node)) continue;
-            graph.setNodeAttribute(node, 'type', 'circle');
+            if (highlightedNodesRef.current.has(node)) graph.setNodeAttribute(node, 'type', 'highlight');
+            else graph.setNodeAttribute(node, 'type', 'circle');
           }
           setSelectedNodes([]);
           handleSelectedNodes([]);

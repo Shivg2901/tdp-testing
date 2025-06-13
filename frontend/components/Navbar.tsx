@@ -1,10 +1,13 @@
+import { links } from '@/lib/data';
+import { getLatestVersionFromChangelog } from '@/lib/getChangelogVersion';
 import logo from '@/public/image/logo.png';
 import { Link } from 'next-view-transitions';
 import Image from 'next/image';
 import { buttonVariants } from './ui/button';
-import { links } from '@/lib/data';
 
 export default function Navbar() {
+  const version = getLatestVersionFromChangelog();
+
   return (
     <header className='relative text-white bg-teal-600'>
       <div>
@@ -18,7 +21,7 @@ export default function Navbar() {
               </h1>
             </Link>
             <Link href='/docs/CHANGELOG' className='text-xs self-end'>
-              Version: {process.env.NEXT_PUBLIC_VERSION || '2.0.0-beta'}
+              Version: {version ?? 'unknown'}
             </Link>
           </div>
           <nav className='hidden md:flex w-1/2 items-center justify-center space-x-4'>

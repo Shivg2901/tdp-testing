@@ -26,7 +26,7 @@ import {
 import { DISEASE_DEPENDENT_PROPERTIES, DISEASE_INDEPENDENT_PROPERTIES } from '@/lib/data';
 import { useStore } from '@/lib/hooks';
 import type { RadioOptions, UniversalData } from '@/lib/interface';
-import { formatBytes, initRadioOptions, openDB } from '@/lib/utils';
+import { P_VALUE_REGEX, formatBytes, initRadioOptions, openDB } from '@/lib/utils';
 import type { CheckedState } from '@radix-ui/react-checkbox';
 import { Trash2, Upload } from 'lucide-react';
 import { Link } from 'next-view-transitions';
@@ -187,6 +187,12 @@ export function FileSheet() {
                 continue;
               }
 
+              // P_Val alias of DEG
+              if (P_VALUE_REGEX.test(prop)) {
+                universalData[geneID].user.LogFC[prop] = row[prop];
+                continue;
+              }
+
               for (const field of [...DISEASE_DEPENDENT_PROPERTIES, ...DISEASE_INDEPENDENT_PROPERTIES]) {
                 const fieldRegex = new RegExp(`^${field}_`, 'i');
                 if (fieldRegex.test(prop)) {
@@ -208,6 +214,12 @@ export function FileSheet() {
             // GDA alias of OpenTargets
             if (/^GDA_/i.test(prop)) {
               radioOptions.user.OpenTargets.push(`[USER] ${prop.replace(/^GDA_/i, '')}`);
+              continue;
+            }
+
+            // P_Val alias of DEG
+            if (P_VALUE_REGEX.test(prop)) {
+              radioOptions.user.LogFC.push(prop);
               continue;
             }
 

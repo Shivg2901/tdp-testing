@@ -1,5 +1,7 @@
 'use client';
 
+import { DiseaseMapCombobox } from '@/components/DiseaseMapCombobox';
+import History, { type HistoryItem } from '@/components/History';
 import PopUpTable from '@/components/PopUpTable';
 import {
   AlertDialog,
@@ -14,10 +16,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { VirtualizedCombobox } from '@/components/VirtualizedCombobox';
 import { graphConfig } from '@/lib/data';
 import { GENE_VERIFICATION_QUERY } from '@/lib/gql';
 import type { GeneVerificationData, GeneVerificationVariables, GetDiseaseData, GraphConfigForm } from '@/lib/interface';
@@ -26,15 +29,12 @@ import { useLazyQuery } from '@apollo/client';
 import { AlertTriangle, Info, Loader } from 'lucide-react';
 import React, { type ChangeEvent } from 'react';
 import { toast } from 'sonner';
-import History, { type HistoryItem } from '@/components/History';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import { Switch } from '@/components/ui/switch';
 
 export default function Home() {
   const [verifyGenes, { data, loading }] = useLazyQuery<GeneVerificationData, GeneVerificationVariables>(
     GENE_VERIFICATION_QUERY,
   );
-  const [diseaseData, setDiseaseData] = React.useState<GetDiseaseData | null>(null);
+  const [diseaseData, setDiseaseData] = React.useState<GetDiseaseData | undefined>(undefined);
 
   React.useEffect(() => {
     (async () => {
@@ -376,13 +376,11 @@ FIG4`,
                       </TooltipContent>
                     </Tooltip>
                   </div>
-                  <VirtualizedCombobox
-                    data={diseaseData?.map(val => `${val.name} (${val.ID})`)}
+                  <DiseaseMapCombobox
+                    data={diseaseData}
                     value={formData.diseaseMap}
                     onChange={val => typeof val === 'string' && handleSelect(val, 'diseaseMap')}
-                    placeholder='Search Disease...'
-                    loading={diseaseData === null}
-                    className='w-full hover:bg-transparent hover:text-current'
+                    className='w-full'
                   />
                 </div>
                 {graphConfig.map(config => (

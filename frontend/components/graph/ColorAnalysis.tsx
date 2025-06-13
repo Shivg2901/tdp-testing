@@ -3,6 +3,7 @@
 import { DEFAULT_EDGE_COLOR } from '@/lib/data';
 import { useStore } from '@/lib/hooks';
 import type { EdgeAttributes, NodeAttributes, OtherSection } from '@/lib/interface';
+import { P_VALUE_REGEX } from '@/lib/utils';
 import { useSigma } from '@react-sigma/core';
 import { scaleLinear } from 'd3-scale';
 import { useEffect } from 'react';
@@ -74,23 +75,28 @@ export function ColorAnalysis() {
         return attr;
       });
     } else if (selectedRadioNodeColor === 'LogFC' && typeof selectedNodeColorProperty === 'string') {
+      const isPValue = P_VALUE_REGEX.test(selectedNodeColorProperty);
+
       const [min, max] = Object.values(universalData).reduce(
         (acc, cur) => {
           const valString = (cur[userOrDiseaseIdentifier] as OtherSection).LogFC?.[selectedNodeColorProperty];
           if (!valString) return acc;
-          const value = +valString;
+          const value = isPValue ? -Math.log10(+valString) : +valString;
           if (Number.isNaN(value)) return acc;
           return [Math.min(acc[0], value), Math.max(acc[1], value)];
         },
         [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY],
       );
 
-      const colorScale = scaleLinear<string>([min, 0, max], ['green', '#E2E2E2', 'red']);
+      const colorScale = isPValue
+        ? scaleLinear<string>([min, max], [defaultNodeColor, 'red'])
+        : scaleLinear<string>([min, 0, max], ['green', '#E2E2E2', 'red']);
+
       graph.updateEachNodeAttributes((node, attr) => {
         const val = (universalData[node]?.[userOrDiseaseIdentifier] as OtherSection)?.[selectedRadioNodeColor][
           selectedNodeColorProperty
         ];
-        if (val != null && !Number.isNaN(+val)) attr.color = colorScale(+val);
+        if (val != null && !Number.isNaN(+val)) attr.color = colorScale(isPValue ? -Math.log10(+val) : +val);
         else attr.color = undefined;
         return attr;
       });

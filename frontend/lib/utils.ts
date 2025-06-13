@@ -65,8 +65,9 @@ export type EventMessage = {
     parameters: Record<string, string>;
   };
   [Events.EXPORT]: {
-    format: 'png' | 'json' | 'csv';
+    format: 'png' | 'csv';
     all?: boolean;
+    csvType?: 'universal' | 'interaction' | 'both';
   };
   [Events.TOGGLE_SEED_GENES]: boolean;
 };
@@ -87,3 +88,5 @@ export function initRadioOptions() {
     OT_Prioritization: [],
   };
 }
+
+export const P_VALUE_REGEX = /^p[-_ ]?val(?:ue)?/i;

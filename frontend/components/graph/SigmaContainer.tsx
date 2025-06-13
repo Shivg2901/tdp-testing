@@ -13,7 +13,7 @@ import type { Attributes } from 'graphology-types';
 import { Maximize, Minimize } from 'lucide-react';
 import React, { Suspense, useEffect } from 'react';
 import type { Sigma } from 'sigma';
-import { EdgeLineProgram, drawDiscNodeHover } from 'sigma/rendering';
+import { EdgeLineProgram, NodeCircleProgram, drawDiscNodeHover } from 'sigma/rendering';
 import {
   ColorAnalysis,
   ForceLayout,
@@ -32,6 +32,7 @@ export const SigmaContainer = React.forwardRef<
 >((props, ref) => {
   const clickedNodesRef = React.useRef(new Set<string>());
   const highlightedNodesRef = React.useRef(new Set<string>());
+  const hubGenesNodesRef = React.useRef(new Set<string>());
 
   useEffect(() => {
     const sigmaContainer = document.querySelector('.sigma-container') as HTMLElement;
@@ -56,6 +57,7 @@ export const SigmaContainer = React.forwardRef<
             ],
           }),
           highlight: NodeBorderProgram,
+          normal: NodeCircleProgram,
         },
         edgeProgramClasses: {
           line: EdgeLineProgram,
@@ -67,12 +69,16 @@ export const SigmaContainer = React.forwardRef<
         <LoadGraph />
       </Suspense>
       <GraphExport highlightedNodesRef={highlightedNodesRef} />
-      <GraphEvents highlightedNodesRef={highlightedNodesRef} clickedNodesRef={clickedNodesRef} />
+      <GraphEvents
+        highlightedNodesRef={highlightedNodesRef}
+        clickedNodesRef={clickedNodesRef}
+        hubGenesNodesRef={hubGenesNodesRef}
+      />
       <ForceLayout />
       <GraphSettings clickedNodesRef={clickedNodesRef} />
       <ColorAnalysis />
       <SizeAnalysis />
-      <GraphAnalysis highlightedNodesRef={highlightedNodesRef} />
+      <GraphAnalysis highlightedNodesRef={highlightedNodesRef} hubGenesNodesRef={hubGenesNodesRef} />
       <ControlsContainer position='bottom-right' style={{ zIndex: 0 }}>
         <ZoomControl />
         <FullScreenControl labels={{ enter: 'ENTER', exit: 'EXIT' }}>
