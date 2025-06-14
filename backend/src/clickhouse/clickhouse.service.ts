@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ClickHouseClient, createClient } from '@clickhouse/client';
+import { ConfigService } from '@nestjs/config';
 
 interface GeneRow {
   gene_name: string;
@@ -10,11 +11,14 @@ export class ClickhouseService {
   private client: ClickHouseClient;
   private readonly logger = new Logger(ClickhouseService.name);
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     this.client = createClient({
-      url: process.env.CLICKHOUSE_URL || 'http://localhost:8123',
-      username: process.env.CLICKHOUSE_USER || 'default',
-      password: process.env.CLICKHOUSE_PASSWORD || '',
+      url: this.configService.get<string>(
+        'CLICKHOUSE_URL',
+        'http://localhost:8123',
+      ),
+      username: this.configService.get<string>('CLICKHOUSE_USER', 'default'),
+      password: this.configService.get<string>('CLICKHOUSE_PASSWORD', ''),
     });
   }
 

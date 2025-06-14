@@ -4,15 +4,14 @@ If you are using VS Code, press Ctrl + Shift + V on windows. Cmd + Shift + V for
 For other IDEs, refer to their mannual for enabling markdown rendering feature.
 -->
 
-# PDnet Project
+# TDP Project
 
 ## Table of Contents
 
 - [Description](#description)
 - [Installation](#installation)
-- [Importing/Exporting Data](#importingexporting-data)
+- [Importing/Exporting Neo4j Data Dump](#importingexporting-neo4j-data-dump)
 - [ClickHouse Data Export/Import](#clickhouse-data-exportimport)
-- [More Information](#more-information)
 - [Troubleshooting & FAQs](#troubleshooting--faqs)
 
 ## Description
@@ -93,6 +92,13 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
     docker compose up -d --build
     ```
 
+    > 💡 **NOTE**
+    > If you are a developer, you can run use [docker-compose.dev.yml](../docker-compose.dev.yml) file to run the services in development mode. This will allow you to make changes in the code and see the changes reflected in the browser without restarting the services.
+
+    ```bash
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+    ```
+
 8. Load ClickHouse data into the database (if you have `.tsv` backup files):
 
     - Ensure your `.tsv` files are placed in the [`scripts/data/backup/clickhouse`](./scripts/data/backup/clickhouse/) directory.
@@ -101,7 +107,7 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
     - Load all tables from the backup:
 
         ```bash
-        docker exec clickhouse bash -c '
+        docker exec -it clickhouse bash -c '
           for f in /backup/clickhouse/*.tsv; do
             t=$(basename "$f" .tsv)
             clickhouse-client --query="INSERT INTO $t FORMAT TabSeparated" < "$f"
@@ -114,11 +120,10 @@ and analysing the gene data. Backend contains the graph traversal algorithm and 
     > The application will auto-create tables on startup. Ensure the `.tsv` files match the expected schema.
     > For more details on importing/exporting ClickHouse data, see the [ClickHouse Data Export/Import](#clickhouse-data-exportimport) section below.
 
-## More Information
 
 For more information of backend and frontend, refer to the respective README files in the [backend](./backend/README.md) and [frontend](./frontend/README.md) directories.
 
-## Importing/Exporting Noe4j Data Dump
+## Importing/Exporting Neo4j Data Dump
 
 1. Export the database dump from the database.
 
@@ -158,7 +163,7 @@ To export all ClickHouse tables as `.tsv` files (one file per table):
 1. **Run this command inside your ClickHouse container:**  
    (Run on the server)
     ```bash
-    docker exec clickhouse bash -c '
+    docker exec -it clickhouse bash -c '
       mkdir -p /backup/clickhouse
       for t in $(clickhouse-client --query="SHOW TABLES" --format=TabSeparated); do
         clickhouse-client --query="SELECT * FROM $t FORMAT TabSeparated" > /backup/clickhouse/${t}.tsv
@@ -213,7 +218,7 @@ If you have received `.tsv` files for ClickHouse tables (one file per table), fo
    (Run on the server)
    Run this command to import all `.tsv` files from the backup directory:
    ```bash
-   docker exec clickhouse bash -c '
+   docker exec -it clickhouse bash -c '
      for f in /backup/clickhouse/*.tsv; do
        t=$(basename "$f" .tsv)
        clickhouse-client --query="INSERT INTO $t FORMAT TabSeparated" < "$f"

@@ -1,5 +1,5 @@
 ### STAGE 1: Build ###
-FROM node:22.1-alpine AS builder
+FROM node:22.15-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -8,7 +8,7 @@ COPY . .
 RUN npm run build
 
 ### STAGE 2: Run ###
-FROM nginx:1.15-alpine
+FROM nginx:1.28-alpine
 # Install apache2-utils for htpasswd
 RUN apk add --no-cache apache2-utils
 

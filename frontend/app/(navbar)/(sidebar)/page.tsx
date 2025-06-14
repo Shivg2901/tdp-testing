@@ -46,7 +46,7 @@ export default function Home() {
 
   const [formData, setFormData] = React.useState<GraphConfigForm>({
     seedGenes: 'MAPT, STX6, EIF2AK3, MOBP, DCTN1, LRRK2',
-    diseaseMap: 'amyotrophic lateral sclerosis (MONDO_0004976)',
+    diseaseMap: 'MONDO_0004976',
     order: '0',
     interactionType: 'PPI',
     minScore: '0.9',
@@ -75,30 +75,23 @@ export default function Home() {
   const [showAlert, setShowAlert] = React.useState(false);
 
   const [autofill, setAutofill] = React.useState(false);
-  const [autofillNum, setAutofillNum] = React.useState<string>('25');
   const [autofillLoading, setAutofillLoading] = React.useState(false);
 
-  const handleAutofill = async () => {
-    const num = parseInt(autofillNum, 10);
-    if (!autofillNum || isNaN(num) || num <= 0) {
-      setFormData(f => ({ ...f, seedGenes: '' }));
-      return;
-    }
-    const match = formData.diseaseMap.match(/\(([^)]+)\)$/);
-    const diseaseId = match ? match[1] : '';
-    if (!diseaseId) {
-      setFormData(f => ({ ...f, seedGenes: '' }));
-      return;
-    }
+  const handleAutofill = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!autofill) return;
+    const fd = new FormData(e.currentTarget);
+    const num = Number.parseInt(fd.get('autofill-num') as string, 10);
     setAutofillLoading(true);
     try {
       const res = await fetch(
-        `${envURL(process.env.NEXT_PUBLIC_BACKEND_URL)}/api/clickhouse/top-genes?diseaseId=${encodeURIComponent(diseaseId)}&limit=${num}`,
+        `${envURL(process.env.NEXT_PUBLIC_BACKEND_URL)}/api/clickhouse/top-genes?diseaseId=${encodeURIComponent(
+          formData.diseaseMap,
+        )}&limit=${num}`,
       );
       const genes: string[] = await res.json();
       setFormData(f => ({ ...f, seedGenes: genes.join(', ') }));
     } catch {
-      setFormData(f => ({ ...f, seedGenes: '' }));
       toast.error('Failed to autofill genes from API', {
         cancel: { label: 'Close', onClick() {} },
       });
@@ -107,12 +100,7 @@ export default function Home() {
     }
   };
 
-  React.useEffect(() => {
-    setGeneIDs(distinct(formData.seedGenes.split(/[,|\n]/).map(gene => gene.trim().toUpperCase())).filter(Boolean));
-  }, [formData.seedGenes]);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async () => {
     const { seedGenes } = formData;
     const geneIDs = distinct(seedGenes.split(/[,|\n]/).map(gene => gene.trim().toUpperCase())).filter(Boolean);
     setGeneIDs(geneIDs);
@@ -226,244 +214,241 @@ export default function Home() {
       </h2>
       <ResizablePanelGroup direction='horizontal' className='gap-4 p-4'>
         <ResizablePanel defaultSize={75} minSize={65}>
-          <form onSubmit={handleSubmit}>
-            <div className='space-y-4'>
-              <div className='flex items-center gap-2 mb-2 flex-wrap'>
-                <Switch checked={autofill} onCheckedChange={setAutofill} id='autofill-toggle' />
-                <Label htmlFor='autofill-toggle' className='whitespace-nowrap'>
-                  Autofill Seed Genes
-                </Label>
-                <span className='flex items-center'>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info size={12} />
-                    </TooltipTrigger>
-                    <TooltipContent className='max-w-s'>
+          <div className='space-y-4'>
+            <div className='flex flex-col sm:flex-row sm:items-center h-8 gap-2 mb-2'>
+              <div className='flex items-center gap-2'></div>
+              <Switch checked={autofill} onCheckedChange={setAutofill} id='autofill-toggle' />
+              <Label htmlFor='autofill-toggle' className='whitespace-nowrap'>
+                Autofill Seed Genes
+              </Label>
+              <span className='flex items-center'>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info size={12} />
+                  </TooltipTrigger>
+                  <TooltipContent className='max-w-s'>
+                    <div>
                       <div>
-                        <div>
-                          <b>Autofills</b> the seed genes box with the top <b>n</b> genes for the selected disease.
-                        </div>
-                        <div>Genes are ranked by overall association score from the OpenTargets platform.</div>
-                        <div>
-                          <b>Note:</b> Autofill uses only one type of gene identifier as returned by the API.
-                        </div>
+                        <b>Autofills</b> the seed genes box with the top <b>n</b> genes for the selected disease.
                       </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </span>
-                {autofill && (
-                  <div className='flex items-center gap-1 ml-4'>
-                    <Label htmlFor='autofill-num'>No. of genes</Label>
-                    <Input
-                      id='autofill-num'
-                      type='number'
-                      min={1}
-                      value={autofillNum}
-                      onChange={e => {
-                        const val = e.target.value;
-                        if (val === '' || /^[0-9\b]+$/.test(val)) setAutofillNum(val);
-                      }}
-                      className='w-20'
-                      placeholder='e.g. 25'
-                      onWheel={e => e.currentTarget.blur()}
-                      disabled={autofillLoading}
-                    />
-                    <Button
-                      type='button'
-                      onClick={handleAutofill}
-                      disabled={autofillLoading}
-                      className='ml-2'
-                      style={{
-                        background:
-                          'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
-                      }}
-                    >
-                      {autofillLoading ? (
-                        <>
-                          <Loader className='animate-spin mr-2' size={16} />
-                          Autofilling...
-                        </>
-                      ) : (
-                        'Autofill'
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className='flex justify-between'>
-                  <Label htmlFor='seedGenes'>Seed Genes</Label>
-                  <p className='text-zinc-500'>
-                    (one-per-line or CSV; examples:
-                    <span
-                      className='underline cursor-pointer'
-                      onClick={() => {
-                        setFormData({
-                          ...formData,
-                          seedGenes: 'MAPT, STX6, EIF2AK3, MOBP, DCTN1, LRRK2',
-                        });
-                      }}
-                    >
-                      #1
-                    </span>{' '}
-                    <span
-                      className='underline cursor-pointer'
-                      onClick={() => {
-                        setFormData({
-                          ...formData,
-                          seedGenes: `ENSG00000122359
+                      <div>Genes are ranked by overall association score from the OpenTargets platform.</div>
+                      <div>
+                        <b>Note:</b> Autofill uses only one type of gene identifier as returned by the API.
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </span>
+              <div className='flex items-center gap-2'></div>
+              {autofill && (
+                <form onSubmit={handleAutofill} className='flex items-center gap-2 sm:ml-4'>
+                  <Label htmlFor='autofill-num'>No. of genes</Label>
+                  <Input
+                    id='autofill-num'
+                    type='number'
+                    inputMode='numeric'
+                    required
+                    name='autofill-num'
+                    min={1}
+                    className='w-20 h-8'
+                    placeholder='e.g. 25'
+                    defaultValue={25}
+                    disabled={autofillLoading}
+                  />
+                  <Button
+                    type='submit'
+                    disabled={autofillLoading}
+                    className='ml-2 h-8'
+                    style={{
+                      background:
+                        'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
+                    }}
+                  >
+                    {autofillLoading ? (
+                      <>
+                        <Loader className='animate-spin mr-2' size={16} />
+                        Autofilling...
+                      </>
+                    ) : (
+                      'Autofill'
+                    )}
+                  </Button>
+                </form>
+              )}
+            </div>
+            <div>
+              <div className='flex justify-between'>
+                <Label htmlFor='seedGenes'>Seed Genes</Label>
+                <p className='text-zinc-500'>
+                  (one-per-line or CSV; examples:
+                  <span
+                    className='underline cursor-pointer'
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        seedGenes: 'MAPT, STX6, EIF2AK3, MOBP, DCTN1, LRRK2',
+                      });
+                    }}
+                  >
+                    #1
+                  </span>{' '}
+                  <span
+                    className='underline cursor-pointer'
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        seedGenes: `ENSG00000122359
 ENSG00000100823
 ENSG00000214944
 ENSG00000172995
 ENSG00000147894
 ENSG00000162063`,
-                        });
-                      }}
-                    >
-                      #2
-                    </span>{' '}
-                    <span
-                      className='underline cursor-pointer'
-                      onClick={() => {
-                        setFormData({
-                          ...formData,
-                          seedGenes: `DCTN1
+                      });
+                    }}
+                  >
+                    #2
+                  </span>{' '}
+                  <span
+                    className='underline cursor-pointer'
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        seedGenes: `DCTN1
 DNAJC7
 ERBB4
 ERLIN1
 EWSR1
 FIG4`,
-                        });
-                      }}
-                    >
-                      #3
-                    </span>
-                    )
-                  </p>
+                      });
+                    }}
+                  >
+                    #3
+                  </span>
+                  )
+                </p>
+              </div>
+              <Textarea
+                rows={6}
+                id='seedGenes'
+                placeholder='Type seed genes in either , or new line separated format'
+                className='mt-1'
+                value={formData.seedGenes}
+                onChange={handleSeedGenesChange}
+                required
+                disabled={autofillLoading}
+              />
+              <center>OR</center>
+              <Label htmlFor='seedFile'>Upload Text File</Label>
+              <Input
+                id='seedFile'
+                type='file'
+                accept='.txt'
+                className='border-2 hover:border-dashed cursor-pointer h-9'
+                onChange={handleFileRead}
+                disabled={autofillLoading}
+              />
+            </div>
+            <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
+              <div className='space-y-1'>
+                <div className='flex items-end gap-1'>
+                  <Label htmlFor='diseaseMap'>Disease Map</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info size={12} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Contains the disease name to be mapped taken from OpenTargets Portal. <br />
+                      <b>Note:</b> To search disease using its ID, type disease ID in parentheses.
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-                <Textarea
-                  rows={6}
-                  id='seedGenes'
-                  placeholder='Type seed genes in either , or new line separated format'
-                  className='mt-1'
-                  value={formData.seedGenes}
-                  onChange={handleSeedGenesChange}
-                  required
-                  disabled={autofillLoading}
-                />
-                <center>OR</center>
-                <Label htmlFor='seedFile'>Upload Text File</Label>
-                <Input
-                  id='seedFile'
-                  type='file'
-                  accept='.txt'
-                  className='border-2 hover:border-dashed cursor-pointer h-9'
-                  onChange={handleFileRead}
-                  disabled={autofillLoading}
+                <DiseaseMapCombobox
+                  data={diseaseData}
+                  value={formData.diseaseMap}
+                  onChange={val => typeof val === 'string' && handleSelect(val, 'diseaseMap')}
+                  className='w-full'
                 />
               </div>
-              <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
-                <div className='space-y-1'>
+              {graphConfig.map(config => (
+                <div key={config.id} className='space-y-1'>
                   <div className='flex items-end gap-1'>
-                    <Label htmlFor='diseaseMap'>Disease Map</Label>
+                    <Label htmlFor={config.id}>{config.name}</Label>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Info size={12} />
                       </TooltipTrigger>
-                      <TooltipContent>
-                        Contains the disease name to be mapped taken from OpenTargets Portal. <br />
-                        <b>Note:</b> To search disease using its ID, type disease ID in parentheses.
-                      </TooltipContent>
+                      <TooltipContent>{config.tooltipContent}</TooltipContent>
                     </Tooltip>
                   </div>
-                  <DiseaseMapCombobox
-                    data={diseaseData}
-                    value={formData.diseaseMap}
-                    onChange={val => typeof val === 'string' && handleSelect(val, 'diseaseMap')}
-                    className='w-full'
-                  />
+                  <Select required value={formData[config.id]} onValueChange={val => handleSelect(val, config.id)}>
+                    <SelectTrigger id={config.id}>
+                      <SelectValue placeholder='Select...' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {config.options.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                {graphConfig.map(config => (
-                  <div key={config.id} className='space-y-1'>
-                    <div className='flex items-end gap-1'>
-                      <Label htmlFor={config.id}>{config.name}</Label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info size={12} />
-                        </TooltipTrigger>
-                        <TooltipContent>{config.tooltipContent}</TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <Select required value={formData[config.id]} onValueChange={val => handleSelect(val, config.id)}>
-                      <SelectTrigger id={config.id}>
-                        <SelectValue placeholder='Select...' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {config.options.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))}
-              </div>
-              <center>
-                <Button
-                  type='submit'
-                  style={{
-                    background:
-                      'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
-                  }}
-                  className='w-3/4 mb-4'
-                >
-                  {loading ? (
-                    <>
-                      <Loader className='animate-spin mr-2' size={20} />
-                      Verifying {geneIDs.length} genes...
-                    </>
-                  ) : (
-                    'Submit'
-                  )}
-                </Button>
-              </center>
-              <PopUpTable
-                setTableOpen={setTableOpen}
-                tableOpen={tableOpen}
-                handleGenerateGraph={handleGenerateGraph}
-                data={data}
-                geneIDs={geneIDs}
-              />
+              ))}
             </div>
-            <AlertDialog open={showAlert}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle className='text-red-500 flex items-center'>
-                    <AlertTriangle size={24} className='mr-2' />
-                    Warning!
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className='text-black'>
-                    You are about to generate a graph with a large number of nodes/edges. This may take a long time to
-                    complete.
-                  </AlertDialogDescription>
-                  <p className='text-black font-semibold'>Are you sure you want to proceed?</p>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setShowAlert(false)}>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => {
-                      setShowAlert(false);
-                      handleGenerateGraph(true);
-                      document.body.removeAttribute('style');
-                    }}
-                  >
-                    Continue
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </form>
+            <center>
+              <Button
+                type='submit'
+                onClick={handleSubmit}
+                style={{
+                  background: 'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
+                }}
+                className='w-3/4 mb-4'
+              >
+                {loading ? (
+                  <>
+                    <Loader className='animate-spin mr-2' size={20} />
+                    Verifying {geneIDs.length} genes...
+                  </>
+                ) : (
+                  'Submit'
+                )}
+              </Button>
+            </center>
+            <PopUpTable
+              setTableOpen={setTableOpen}
+              tableOpen={tableOpen}
+              handleGenerateGraph={handleGenerateGraph}
+              data={data}
+              geneIDs={geneIDs}
+            />
+          </div>
+          <AlertDialog open={showAlert}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className='text-red-500 flex items-center'>
+                  <AlertTriangle size={24} className='mr-2' />
+                  Warning!
+                </AlertDialogTitle>
+                <AlertDialogDescription className='text-black'>
+                  You are about to generate a graph with a large number of nodes/edges. This may take a long time to
+                  complete.
+                </AlertDialogDescription>
+                <p className='text-black font-semibold'>Are you sure you want to proceed?</p>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setShowAlert(false)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    setShowAlert(false);
+                    handleGenerateGraph(true);
+                    document.body.removeAttribute('style');
+                  }}
+                >
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </ResizablePanel>
         <ResizableHandle withHandle className='hidden md:flex' />
         <ResizablePanel className='h-[65vh] hidden md:block' defaultSize={25} minSize={15}>
