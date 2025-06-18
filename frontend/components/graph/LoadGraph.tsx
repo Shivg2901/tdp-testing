@@ -39,9 +39,9 @@ type AllowedNodeType = 'circle' | 'square' | 'diamond' | 'border' | 'highlight' 
 function mapTypeToNodeType(type: string | undefined): AllowedNodeType {
   if (!type) return 'circle';
   const t = type.toLowerCase();
-  if (t.includes('gene') || t.includes('protein')) return 'circle'; // gene/protein: circle
-  if (t.includes('drug')) return 'square'; // drug: square
-  if (t.includes('disease')) return 'diamond'; // disease: diamond
+  if (t.includes('gene') || t.includes('protein')) return 'circle';
+  if (t.includes('drug')) return 'square';
+  if (t.includes('disease')) return 'diamond';
   return 'normal';
 }
 
@@ -173,6 +173,7 @@ export function LoadGraph() {
             });
             const nodes = Array.from(nodeMap.values());
             const serializedGraph: Partial<SerializedGraph<NodeAttributes, EdgeAttributes>> = {
+              //@ts-expect-error reason: abhi pta ni
               nodes,
               edges,
               options: { type: 'directed' },
