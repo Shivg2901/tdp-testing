@@ -3,6 +3,7 @@ import PopUpTable from '@/components/PopUpTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GENE_VERIFICATION_QUERY } from '@/lib/gql';
 import type { GeneVerificationData, GeneVerificationVariables } from '@/lib/interface';
@@ -16,6 +17,8 @@ import { toast } from 'sonner';
 export default function UploadFile() {
   const [file, setFile] = React.useState<File | null>(null);
   const [fileType, setFileType] = React.useState<'csv' | 'json'>('csv');
+  const [csvType, setCsvType] = React.useState<'type1' | 'type2'>('type1');
+  const [verifyGenes, setVerifyGenes] = React.useState(true);
   const [fetchData, { data, loading }] = useLazyQuery<GeneVerificationData, GeneVerificationVariables>(
     GENE_VERIFICATION_QUERY,
   );
@@ -42,7 +45,7 @@ export default function UploadFile() {
       });
       return;
     }
-    let distinctSeedGenes: string[];
+    let distinctSeedGenes: string[] = [];
     if (fileType === 'json') {
       const data = JSON.parse(await file.text());
       distinctSeedGenes = distinct(
@@ -54,34 +57,80 @@ export default function UploadFile() {
       );
     } else {
       const data = await file.text();
-      distinctSeedGenes = distinct(
-        data
-          .split('\n')
-          .slice(1)
-          .flatMap(line => line.split(',').slice(0, 2))
-          .map(gene => gene.trim().toUpperCase()),
-      );
+      const lines = data.split('\n').filter(Boolean);
+
+      if (csvType == 'type2') {
+        const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+        const xTypeIdx = header.indexOf('x_type');
+        const yTypeIdx = header.indexOf('y_type');
+        const xIdIdx = header.indexOf('x_name');
+        const yIdIdx = header.indexOf('y_name');
+
+        if (verifyGenes) {
+          if (verifyGenes) {
+            for (let i = 1; i < lines.length; i++) {
+              const cols = lines[i].split(',');
+              if (
+                (cols[xTypeIdx]?.toLowerCase().includes('gene') || cols[xTypeIdx]?.toLowerCase().includes('protein')) &&
+                cols[xIdIdx]
+              ) {
+                distinctSeedGenes.push(cols[xIdIdx].trim().toUpperCase());
+              }
+              if (
+                (cols[yTypeIdx]?.toLowerCase().includes('protein') || cols[yTypeIdx]?.toLowerCase().includes('gene')) &&
+                cols[yIdIdx]
+              ) {
+                distinctSeedGenes.push(cols[yIdIdx].trim().toUpperCase());
+              }
+            }
+            distinctSeedGenes = distinct(distinctSeedGenes);
+          }
+        }
+      } else {
+        distinctSeedGenes = distinct(
+          data
+            .split('\n')
+            .slice(1)
+            .flatMap(line => line.split(',').slice(0, 2))
+            .map(gene => gene.trim().toUpperCase()),
+        );
+      }
     }
-    if (distinctSeedGenes.length < 2) {
+
+    if ((csvType === 'type1' || (csvType === 'type2' && verifyGenes)) && distinctSeedGenes.length < 2) {
       toast.error('Please provide at least 2 valid genes', {
         cancel: { label: 'Close', onClick() {} },
         description: 'Seed genes should be either ENSG IDs or gene names',
       });
       return;
     }
-    const { error } = await fetchData({
-      variables: { geneIDs: distinctSeedGenes },
-    });
-    if (error) {
-      console.error(error);
-      toast.error('Error fetching data', {
+
+    if (csvType === 'type2' && !verifyGenes) {
+      setGeneIDs([]);
+      setTableOpen(false);
+      toast.success('File ready to upload (no gene verification)', {
         cancel: { label: 'Close', onClick() {} },
-        description: 'Server not available,Please try again later',
       });
+      //generate
+      await handleGenerateGraph();
       return;
     }
-    setGeneIDs(distinctSeedGenes);
-    setTableOpen(true);
+
+    if (distinctSeedGenes.length > 0) {
+      const { error } = await fetchData({
+        variables: { geneIDs: distinctSeedGenes },
+      });
+      if (error) {
+        console.error(error);
+        toast.error('Error fetching data', {
+          cancel: { label: 'Close', onClick() {} },
+          description: 'Server not available,Please try again later',
+        });
+        return;
+      }
+      setGeneIDs(distinctSeedGenes);
+      setTableOpen(true);
+    }
   };
 
   const handleGenerateGraph = async () => {
@@ -124,6 +173,32 @@ export default function UploadFile() {
               </SelectContent>
             </Select>
           </div>
+          {fileType === 'csv' && (
+            <div>
+              <Label htmlFor='csvType'>CSV Format</Label>
+              <Select value={csvType} onValueChange={val => setCsvType(val as 'type1' | 'type2')}>
+                <SelectTrigger id='csvType'>
+                  <SelectValue placeholder='Select CSV format' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='type1'>Type 1 (Node1, Node2, Score)</SelectItem>
+                  <SelectItem value='type2'>Type 2 (relation,display_relation,x_index,x_id,...)</SelectItem>
+                </SelectContent>
+              </Select>
+              {csvType === 'type2' && (
+                <div className='flex items-center mt-2'>
+                  <Checkbox
+                    id='verifyGenes'
+                    checked={verifyGenes}
+                    onCheckedChange={checked => setVerifyGenes(!!checked)}
+                  />
+                  <Label htmlFor='verifyGenes' className='ml-2'>
+                    Verify genes/proteins in file?
+                  </Label>
+                </div>
+              )}
+            </div>
+          )}
           <div>
             <div className='flex justify-between items-center'>
               <Label htmlFor='fileUpload'>Upload {fileType.toUpperCase()}</Label>

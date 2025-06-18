@@ -34,6 +34,36 @@ import {
 } from '../ui/alert-dialog';
 import { Spinner } from '../ui/spinner';
 
+type AllowedNodeType = 'circle' | 'square' | 'diamond' | 'border' | 'highlight' | 'normal' | undefined;
+
+function mapTypeToNodeType(type: string | undefined): AllowedNodeType {
+  if (!type) return 'circle';
+  const t = type.toLowerCase();
+  if (t.includes('gene') || t.includes('protein')) return 'circle'; // gene/protein: circle
+  if (t.includes('drug')) return 'square'; // drug: square
+  if (t.includes('disease')) return 'diamond'; // disease: diamond
+  return 'normal';
+}
+
+function mapTypeToColor(type: string | undefined): string {
+  if (!type) return '#aaa';
+  const t = type.toLowerCase();
+  if (t.includes('gene') || t.includes('protein')) return '#4f8cff';
+  if (t.includes('drug')) return '#ffb347';
+  if (t.includes('disease')) return '#e75480';
+  return '#aaa';
+}
+
+type Type2Node = {
+  key: string;
+  attributes: {
+    label: string;
+    type: AllowedNodeType;
+    color: string;
+    rawType: string;
+  };
+};
+
 export function LoadGraph() {
   const searchParams = useSearchParams();
   const loadGraph = useLoadGraph();
@@ -92,6 +122,70 @@ export function LoadGraph() {
             });
             return;
           }
+
+          const isType2 =
+            fields.includes('x_id') &&
+            fields.includes('y_id') &&
+            fields.includes('x_type') &&
+            fields.includes('y_type');
+
+          if (isType2) {
+            const nodeMap = new Map<string, Type2Node>();
+            const edges: Array<SerializedEdge<EdgeAttributes>> = [];
+
+            fileData.forEach((row, idx) => {
+              if (row.x_id && !nodeMap.has(row.x_id as string)) {
+                nodeMap.set(row.x_id as string, {
+                  key: row.x_id as string,
+                  attributes: {
+                    label: (row.x_name as string) || (row.x_id as string),
+                    type: mapTypeToNodeType(row.x_type as string),
+                    color: mapTypeToColor(row.x_type as string),
+                    rawType: (row.x_type as string) || '',
+                  },
+                });
+              }
+
+              if (row.y_id && !nodeMap.has(row.y_id as string)) {
+                nodeMap.set(row.y_id as string, {
+                  key: row.y_id as string,
+                  attributes: {
+                    label: (row.y_name as string) || (row.y_id as string),
+                    type: mapTypeToNodeType(row.y_type as string),
+                    color: mapTypeToColor(row.y_type as string),
+                    rawType: (row.y_type as string) || '',
+                  },
+                });
+              }
+
+              if (row.x_id && row.y_id) {
+                edges.push({
+                  key: `e${idx}`,
+                  source: row.x_id as string,
+                  target: row.y_id as string,
+                  attributes: {
+                    label: row.relation || '',
+                    relation: row.relation || '',
+                    display_relation: row.display_relation || '',
+                  },
+                });
+              }
+            });
+            const nodes = Array.from(nodeMap.values());
+            const serializedGraph: Partial<SerializedGraph<NodeAttributes, EdgeAttributes>> = {
+              nodes,
+              edges,
+              options: { type: 'directed' },
+            };
+            loadGraph(serializedGraph as unknown as Graph<NodeAttributes, EdgeAttributes>);
+            useStore.setState({
+              geneIDs: nodes.map(n => n.key),
+              totalNodes: nodes.length,
+              totalEdges: edges.length,
+            });
+            return;
+          }
+
           const geneIDs = new Set<string>();
           for (const gene of fileData) {
             geneIDs.add(gene[fields?.[0]] as string);

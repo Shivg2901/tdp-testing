@@ -28,3 +28,18 @@ export function drawRoundRect(
   ctx.quadraticCurveTo(x, y, x + radius, y);
   ctx.closePath();
 }
+
+export function drawTriangle(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  const height = size * Math.sqrt(3);
+  ctx.beginPath();
+  ctx.moveTo(x, y - (2 / 3) * height);
+  ctx.lineTo(x - size, y + (1 / 3) * height);
+  ctx.lineTo(x + size, y + (1 / 3) * height);
+  ctx.closePath();
+}
+
+export function drawSquare(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  ctx.beginPath();
+  ctx.rect(x - size, y - size, size * 2, size * 2);
+  ctx.closePath();
+}
