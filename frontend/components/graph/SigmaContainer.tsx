@@ -1,6 +1,8 @@
 'use client';
 
 import { NodeGradientProgram } from '@/lib/graph';
+import NodeSquareProgram from '@/lib/graph/NodeSquareProgram';
+import NodeTriangleProgram from '@/lib/graph/NodeTriangleProgram';
 import type { EdgeAttributes, NodeAttributes } from '@/lib/interface';
 import {
   ControlsContainer,
@@ -58,11 +60,19 @@ export const SigmaContainer = React.forwardRef<
           }),
           highlight: NodeBorderProgram,
           normal: NodeCircleProgram,
+          square: NodeSquareProgram,
+          triangle: NodeTriangleProgram,
         },
         edgeProgramClasses: {
           line: EdgeLineProgram,
         },
         defaultDrawNodeHover: drawDiscNodeHover,
+        nodeReducer(node, data) {
+          if (data.nodeType === 'drug') data.type = 'square';
+          else if (data.nodeType === 'disease') data.type = 'triangle';
+          else data.type = 'circle';
+          return data;
+        },
       }}
     >
       <Suspense>

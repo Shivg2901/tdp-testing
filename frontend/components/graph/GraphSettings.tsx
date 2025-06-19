@@ -63,6 +63,9 @@ export function GraphSettings({ clickedNodesRef }: { clickedNodesRef?: React.Mut
     const graph = sigma.getGraph();
     setSettings({
       nodeReducer(node, data) {
+        if (data.nodeType === 'drug') data.type = 'square';
+        else if (data.nodeType === 'disease') data.type = 'triangle';
+        else data.type = 'circle';
         if (!data.x) data.x = Math.random() * 1000;
         if (!data.y) data.y = Math.random() * 1000;
         if (!data.size) data.size = defaultNodeSize;
