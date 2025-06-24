@@ -14,7 +14,7 @@ export const GENE_VERIFICATION_QUERY = gql`
 `;
 
 export const GENE_GRAPH_QUERY = gql`
-  query GeneGraph($geneIDs: [String!]!, $minScore: Float!, $order: Int!, $interactionType: String!) {
+  query GeneGraph($geneIDs: [String!]!, $minScore: Float!, $order: Int!, $interactionType: [String!]!) {
     getGeneInteractions(
       input: { geneIDs: $geneIDs, minScore: $minScore, interactionType: $interactionType }
       order: $order

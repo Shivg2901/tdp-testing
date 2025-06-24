@@ -15,6 +15,7 @@ import type {
   Description,
 } from './models';
 import { createHash } from 'node:crypto';
+import { mergeEdgesAndAverageScore } from '@/utils/mergeEdges';
 
 export interface GetGenesResult {
   ID: string;
@@ -140,7 +141,7 @@ export class GqlService {
     await this.neo4jService.releaseSession(session);
     return {
       genes: result.records[0]?.get('genes') ?? [],
-      links: result.records[0]?.get('links') ?? [],
+      links: mergeEdgesAndAverageScore(result.records[0]?.get('links') ?? []),
     };
   }
 

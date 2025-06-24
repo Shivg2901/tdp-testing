@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multiselect';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -50,7 +51,7 @@ export default function Home() {
     seedGenes: 'MAPT, STX6, EIF2AK3, MOBP, DCTN1, LRRK2',
     diseaseMap: 'MONDO_0004976',
     order: '0',
-    interactionType: 'PPI',
+    interactionType: ['PPI'],
     minScore: '0.9',
   });
 
@@ -129,6 +130,9 @@ export default function Home() {
 
   const handleSelect = (val: string, key: string) => {
     setFormData({ ...formData, [key]: val });
+  };
+  const handleMultiSelect = (vals: string[], key: string) => {
+    setFormData({ ...formData, [key]: vals });
   };
 
   const handleFileRead = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -389,18 +393,27 @@ FIG4`,
                       <TooltipContent>{config.tooltipContent}</TooltipContent>
                     </Tooltip>
                   </div>
-                  <Select required value={formData[config.id]} onValueChange={val => handleSelect(val, config.id)}>
-                    <SelectTrigger id={config.id}>
-                      <SelectValue placeholder='Select...' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {config.options.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {config.id === 'interactionType' ? (
+                    <MultiSelect
+                      options={[...config.options]}
+                      selectedValues={formData[config.id] || []}
+                      onChange={values => handleMultiSelect(values, config.id)}
+                      placeholder='Select...'
+                    />
+                  ) : (
+                    <Select required value={formData[config.id]} onValueChange={val => handleSelect(val, config.id)}>
+                      <SelectTrigger id={config.id}>
+                        <SelectValue placeholder='Select...' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {config.options.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               ))}
             </div>

@@ -11,6 +11,7 @@ export default function drawEdgeHover(
   const size = settings.edgeLabelSize;
   const font = settings.edgeLabelFont;
   const weight = settings.edgeLabelWeight;
+  context.font = `${weight} ${size}px ${font}`;
 
   // Draw the edge label with an improved design
   const text = `Score ${data.score || ''}`;
@@ -25,7 +26,6 @@ export default function drawEdgeHover(
 
   // Add a subtle glow effect
   context.beginPath();
-  context.font = `${weight} ${size}px ${font}`;
   context.shadowOffsetX = 0;
   context.shadowOffsetY = 3;
   context.shadowBlur = 10;

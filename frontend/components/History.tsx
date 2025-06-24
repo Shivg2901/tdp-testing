@@ -18,8 +18,12 @@ import { Checkbox } from './ui/checkbox';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { ScrollArea } from './ui/scroll-area';
+import { graphConfig } from '@/lib/data';
 
 export type HistoryItem = GraphConfigForm & { title: string; geneIDs: string[]; createdAt?: number };
+
+const interactionTypeOptions = graphConfig.find(cfg => cfg.id === 'interactionType')?.options || [];
+const interactionTypeMap = Object.fromEntries(interactionTypeOptions.map(opt => [opt.value, opt.label]));
 
 export default function History({
   history,
@@ -119,7 +123,11 @@ export default function History({
                   <div className='pl-1 text-xs text-muted-foreground'>
                     <p>{item.seedGenes.length > 30 ? item.seedGenes.slice(0, 30) + '...' : item.seedGenes}</p>
                     <p>
-                      {item.diseaseMap} : Order - {item.order} : {item.interactionType} : {item.minScore}
+                      {item.diseaseMap} : Order - {item.order} :{' '}
+                      {Array.isArray(item.interactionType)
+                        ? item.interactionType.map(type => interactionTypeMap[type] || type).join(', ')
+                        : interactionTypeMap[item.interactionType] || item.interactionType}{' '}
+                      : {item.minScore}
                     </p>
                   </div>
                 </CardHeader>
