@@ -207,7 +207,7 @@ export function LeftSideBar() {
 
   async function handleDiseaseChange(disease: string) {
     setDiseaseMap(disease);
-    useStore.setState({ diseaseName: disease.split(' ').at(-1)?.slice(1, -1) });
+    useStore.setState({ diseaseName: disease });
   }
   return (
     <ScrollArea className='border-r bg-secondary flex flex-col h-[calc(96vh-1.5px)]'>

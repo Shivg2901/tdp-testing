@@ -70,3 +70,11 @@ export const GET_HEADERS_QUERY = (bringCommon = true) => gql`
     }
   }
 `;
+
+export const TOP_GENES_QUERY = gql`
+  query TopGenesByDisease($diseaseId: String!, $limit: Int!) {
+    topGenesByDisease(diseaseId: $diseaseId, limit: $limit) {
+      gene_name
+    }
+  }
+`;

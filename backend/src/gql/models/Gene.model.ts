@@ -28,3 +28,9 @@ export class Gene {
   @Field(() => GraphQLJSON, { nullable: true })
   disease?: typeof GraphQLJSONType;
 }
+
+@ObjectType()
+export class TopGene {
+  @Field()
+  gene_name: string;
+}

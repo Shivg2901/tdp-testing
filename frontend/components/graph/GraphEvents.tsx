@@ -273,9 +273,13 @@ export function GraphEvents({
           clickedNodesRef?.current.delete(clickedNode);
           graph.forEachNeighbor(clickedNode, (neighbor, attr) => {
             clickedNodesRef?.current.delete(neighbor);
-            if (highlightedNodesRef.current.has(neighbor)) return;
-            attr.type = 'circle';
-            attr.highlighted = false;
+            if (highlightedNodesRef.current.has(neighbor)) {
+              attr.type = 'highlight';
+              attr.highlighted = true;
+            } else {
+              attr.type = 'circle';
+              attr.highlighted = false;
+            }
           });
           if (highlightedNodesRef.current.has(clickedNode)) {
             graph.setNodeAttribute(clickedNode, 'type', 'highlight');
