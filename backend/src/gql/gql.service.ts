@@ -141,7 +141,12 @@ export class GqlService {
     await this.neo4jService.releaseSession(session);
     return {
       genes: result.records[0]?.get('genes') ?? [],
-      links: mergeEdgesAndAverageScore(result.records[0]?.get('links') ?? []),
+      links: mergeEdgesAndAverageScore(
+        result.records[0]?.get('links') ?? [],
+        Array.isArray(input.interactionType)
+          ? input.interactionType
+          : [input.interactionType],
+      ),
     };
   }
 

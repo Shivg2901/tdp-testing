@@ -41,4 +41,6 @@ export interface EdgeAttributes extends Attributes {
    * z-index of the edge
    */
   zIndex?: number;
+
+  typeScores?: Record<string, number | null>;
 }

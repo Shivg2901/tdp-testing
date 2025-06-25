@@ -28,6 +28,7 @@ export const GENE_GRAPH_QUERY = gql`
         gene1
         gene2
         score
+        typeScores
       }
       graphName
     }

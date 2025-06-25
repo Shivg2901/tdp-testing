@@ -1,6 +1,10 @@
 import { Settings } from 'sigma/settings';
 import { EdgeAttributes, NodeAttributes } from '../interface';
 import { drawRoundRect } from './utils';
+import { graphConfig } from '../data/graphConfig';
+
+const interactionTypeOptions = graphConfig.find(cfg => cfg.id === 'interactionType')?.options || [];
+const interactionTypeMap = Object.fromEntries(interactionTypeOptions.map(opt => [opt.value, opt.label]));
 
 export default function drawEdgeHover(
   context: CanvasRenderingContext2D,
@@ -14,15 +18,25 @@ export default function drawEdgeHover(
   context.font = `${weight} ${size}px ${font}`;
 
   // Draw the edge label with an improved design
-  const text = `Score ${data.score || ''}`;
-  const textWidth = context.measureText(text).width;
+  const text = `Score ${data.score ?? ''}`;
+  let typeParts: string[] = [];
+  if (data.typeScores && Object.keys(data.typeScores).length > 0) {
+    typeParts = Object.entries(data.typeScores)
+      .filter(([, v]) => v !== null && v !== undefined)
+      .map(([k, v]) => `${interactionTypeMap[k] || k}: ${Number(v).toFixed(2)}`);
+  }
+  const lines = [text];
+  const showTypeScores = typeParts.length > 1;
+  if (showTypeScores) {
+    typeParts.forEach(part => lines.push(part));
+  }
   const textHeight = size;
   const padding = 8;
   const radius = 6;
   const x = data.x + padding;
   const y = data.y + padding;
-  const width = textWidth + 2 * padding;
-  const height = textHeight + 2 * padding;
+  const width = Math.max(...lines.map(line => context.measureText(line).width)) + 2 * padding;
+  const height = lines.length * textHeight + 2 * padding;
 
   // Add a subtle glow effect
   context.beginPath();
@@ -50,5 +64,24 @@ export default function drawEdgeHover(
 
   // Draw text
   context.fillStyle = settings.edgeLabelColor.color || '#333';
-  context.fillText(text, x + padding, y + padding + textHeight * 0.85);
+  lines.forEach((line, i) => {
+    let yOffset = y + padding + textHeight * (i + 0.85);
+    if (showTypeScores && i > 0) {
+      yOffset += textHeight * 0.5;
+    }
+    context.fillText(line, x + padding, yOffset);
+
+    if (showTypeScores && i === 0) {
+      context.save();
+
+      const sepY = y + padding + textHeight * (i + 1.15);
+      context.strokeStyle = strokeGradient;
+      context.lineWidth = 2;
+      context.beginPath();
+      context.moveTo(x, sepY);
+      context.lineTo(x + width, sepY);
+      context.stroke();
+      context.restore();
+    }
+  });
 }

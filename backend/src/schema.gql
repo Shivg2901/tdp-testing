@@ -33,6 +33,7 @@ type GeneInteraction {
   gene1: String!
   gene2: String!
   score: Float!
+  typeScores: JSON
 }
 
 type GeneInteractionOutput {

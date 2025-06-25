@@ -58,6 +58,7 @@ export interface GeneGraphData {
        * Combined score of the interaction
        */
       score: number;
+      typeScores?: Record<string, number | null>;
     }[];
 
     /**
