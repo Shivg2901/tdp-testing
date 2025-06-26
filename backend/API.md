@@ -273,12 +273,6 @@ GET /louvain?graphName=8ccf297799d6466a1e465b7f03457f5c7f09ec052eab8c6e4bd642bd6
 - **Request**
 
 ```http
-GET /gsea?gene_list=BRCA1,TP53
-```
-
-OR
-
-```http
 POST /gsea
 Content-Type: application/json
 

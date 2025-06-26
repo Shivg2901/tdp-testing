@@ -18,12 +18,9 @@ import { Checkbox } from './ui/checkbox';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { ScrollArea } from './ui/scroll-area';
-import { graphConfig } from '@/lib/data';
+import { interactionTypeMap } from '@/lib/data';
 
 export type HistoryItem = GraphConfigForm & { title: string; geneIDs: string[]; createdAt?: number };
-
-const interactionTypeOptions = graphConfig.find(cfg => cfg.id === 'interactionType')?.options || [];
-const interactionTypeMap = Object.fromEntries(interactionTypeOptions.map(opt => [opt.value, opt.label]));
 
 export default function History({
   history,

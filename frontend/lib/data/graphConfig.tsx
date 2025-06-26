@@ -121,3 +121,7 @@ export interface GraphConfig {
   minScore: string;
   graphName: string;
 }
+
+export const interactionTypeMap = Object.fromEntries(
+  (graphConfig.find(cfg => cfg.id === 'interactionType')?.options || []).map(opt => [opt.value, opt.label]),
+);

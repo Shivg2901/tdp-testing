@@ -42,5 +42,8 @@ export interface EdgeAttributes extends Attributes {
    */
   zIndex?: number;
 
+  /**
+   * Scores for different interaction types if the edge represents multiple interaction types
+   */
   typeScores?: Record<string, number | null>;
 }
