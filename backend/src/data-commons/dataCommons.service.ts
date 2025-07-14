@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const DATA_PATH = path.join(process.cwd(), 'src', 'data-commons', 'data');
+const DATA_PATH =
+  process.env.DATA_COMMONS_PATH ||
+  path.join(process.cwd(), 'src', 'data-commons', 'data');
 
 @Injectable()
 export class DataCommonsService {
