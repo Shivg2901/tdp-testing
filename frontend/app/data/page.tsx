@@ -1,11 +1,17 @@
 'use client';
 
-import { TranscriptTab } from '@/components/data-commons/tabs/TranscriptTab';
-import { PCATab } from '@/components/data-commons/tabs/PCATab';
-import { DETab } from '@/components/data-commons/tabs/DETab';
+import dynamic from 'next/dynamic';
 import '@react-sigma/core/lib/style.css';
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import { Suspense } from 'react';
+
+const TranscriptTab = dynamic(
+  () => import('@/components/data-commons/tabs/TranscriptTab').then(mod => mod.TranscriptTab),
+  { ssr: false },
+);
+const PCATab = dynamic(() => import('@/components/data-commons/tabs/PCATab').then(mod => mod.PCATab), { ssr: false });
+const DETab = dynamic(() => import('@/components/data-commons/tabs/DETab').then(mod => mod.DETab), { ssr: false });
 
 function PDCSNetworkTabs() {
   const tabNames = [
@@ -75,5 +81,9 @@ function PDCSNetworkTabs() {
 }
 
 export default function NetworkPage() {
-  return <PDCSNetworkTabs />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PDCSNetworkTabs />
+    </Suspense>
+  );
 }
