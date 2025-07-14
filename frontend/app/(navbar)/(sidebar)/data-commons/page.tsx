@@ -94,36 +94,37 @@ export default function DataCommonsPage() {
           view available data and project description.
         </p>
       </div>
-      <form className='space-y-6 px-8 py-8'>
-        <div>
-          <Label htmlFor='group'>Select Group</Label>
-          <Select
-            value={selectedGroup}
-            onValueChange={val => {
-              setSelectedGroup(val);
-              setSelectedProgram('');
-              setSelectedProject('');
-            }}
-          >
-            <SelectTrigger id='group'>
-              <SelectValue placeholder='Select group' />
-            </SelectTrigger>
-            <SelectContent>
-              {structure
-                .filter(g =>
-                  g.programs.some(p =>
-                    p.projects.some(prj => prj.studies.some(study => study.hasData && study.files.length > 0)),
-                  ),
-                )
-                .map(group => (
-                  <SelectItem key={group.name} value={group.name}>
-                    {group.name}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {selectedGroup && (
+      <form className='px-8 py-8'>
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+          <div>
+            <Label htmlFor='group'>Select Group</Label>
+            <Select
+              value={selectedGroup}
+              onValueChange={val => {
+                setSelectedGroup(val);
+                setSelectedProgram('');
+                setSelectedProject('');
+              }}
+            >
+              <SelectTrigger id='group'>
+                <SelectValue placeholder='Select group' />
+              </SelectTrigger>
+              <SelectContent>
+                {structure
+                  .filter(g =>
+                    g.programs.some(p =>
+                      p.projects.some(prj => prj.studies.some(study => study.hasData && study.files.length > 0)),
+                    ),
+                  )
+                  .map(group => (
+                    <SelectItem key={group.name} value={group.name}>
+                      {group.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div>
             <Label htmlFor='program'>Select Program</Label>
             <Select
@@ -132,6 +133,7 @@ export default function DataCommonsPage() {
                 setSelectedProgram(val);
                 setSelectedProject('');
               }}
+              disabled={!selectedGroup}
             >
               <SelectTrigger id='program'>
                 <SelectValue placeholder='Select program' />
@@ -145,11 +147,10 @@ export default function DataCommonsPage() {
               </SelectContent>
             </Select>
           </div>
-        )}
-        {selectedProgram && (
+
           <div>
             <Label htmlFor='project'>Select Project</Label>
-            <Select value={selectedProject} onValueChange={setSelectedProject}>
+            <Select value={selectedProject} onValueChange={setSelectedProject} disabled={!selectedProgram}>
               <SelectTrigger id='project'>
                 <SelectValue placeholder='Select project' />
               </SelectTrigger>
@@ -162,7 +163,7 @@ export default function DataCommonsPage() {
               </SelectContent>
             </Select>
           </div>
-        )}
+        </div>
       </form>
       {selectedGroup && selectedProgram && selectedProject && (
         <div className='px-8 pb-4'>
@@ -187,7 +188,7 @@ export default function DataCommonsPage() {
             style={{ maxWidth: '100%', maxHeight: 400, position: 'relative', width: '100%', height: 400 }}
           >
             <Image
-              src={descriptionUrl}
+              src={descriptionUrl || '/placeholder.svg'}
               alt='Project Description'
               fill
               style={{ objectFit: 'contain' }}
