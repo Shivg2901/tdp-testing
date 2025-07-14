@@ -32,7 +32,12 @@ type ProcessedData = {
   bounds: Bounds;
 };
 
-export default function VolcanoPlot() {
+interface VolcanoPlotProps {
+  contrastUrl?: string;
+  deFiles?: Record<string, string>;
+}
+
+export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
   const [availableContrasts, setAvailableContrasts] = useState<string[]>([]);
   const [selectedContrasts, setSelectedContrasts] = useState<string[]>([]);
   const [debouncedContrasts, setDebouncedContrasts] = useState<string[]>([]);
@@ -44,27 +49,22 @@ export default function VolcanoPlot() {
   const [yThresholdInput, setYThresholdInput] = useState<string>('0.01');
 
   useEffect(() => {
-    const discoverContrasts = async () => {
-      setLoading(true);
-      const potentialContrasts = ['c1', 'c2', 'c3', 'c4', 'c5'];
-      const found: string[] = [];
-
-      await Promise.all(
-        potentialContrasts.map(async contrast => {
-          try {
-            const res = await fetch(`/volcano-${contrast}.csv`);
-            if (res.ok) found.push(contrast);
-          } catch (_) {}
-        }),
-      );
-
-      setAvailableContrasts(found.sort());
-      if (found.length > 0) setSelectedContrasts([found[0]]);
+    if (!deFiles || Object.keys(deFiles).length === 0) {
+      setAvailableContrasts([]);
+      setSelectedContrasts([]);
       setLoading(false);
-    };
-
-    discoverContrasts();
-  }, []);
+      return;
+    }
+    setLoading(true);
+    const contrastNames = Object.keys(deFiles).map(filename => {
+      if (filename === 'DifferentialExpression.csv') return 'default';
+      const match = filename.match(/^DifferentialExpression-(.+)\.csv$/);
+      return match ? match[1] : filename;
+    });
+    setAvailableContrasts(contrastNames);
+    setSelectedContrasts(contrastNames.length === 1 ? [contrastNames[0]] : [contrastNames[0]]);
+    setLoading(false);
+  }, [deFiles]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,40 +74,32 @@ export default function VolcanoPlot() {
   }, [selectedContrasts]);
 
   useEffect(() => {
-    const loadContrastData = async () => {
-      const toFetch = debouncedContrasts.filter(c => !contrastData[c]);
-      if (toFetch.length === 0) return;
+    if (!deFiles) return;
+    const toFetch = debouncedContrasts.filter(c => !contrastData[c]);
+    if (toFetch.length === 0) return;
 
-      const newData: Record<string, RawCSVRow[]> = {};
+    const newData: Record<string, RawCSVRow[]> = {};
 
-      await Promise.all(
-        toFetch.map(async contrast => {
-          try {
-            const res = await fetch(`/volcano-${contrast}.csv`);
-            const csvText = await res.text();
-            return new Promise<void>(resolve => {
-              Papa.parse<RawCSVRow>(csvText, {
-                header: true,
-                dynamicTyping: true,
-                complete: results => {
-                  newData[contrast] = results.data;
-                  resolve();
-                },
-              });
-            });
-          } catch (err) {
-            console.error(`Error loading ${contrast}:`, err);
-          }
-        }),
-      );
-
-      setContrastData(prev => ({ ...prev, ...newData }));
-    };
-
-    if (debouncedContrasts.length > 0) {
-      loadContrastData();
-    }
-  }, [debouncedContrasts, contrastData]);
+    toFetch.forEach(contrast => {
+      let csvText = '';
+      if (contrast === 'default' && deFiles['DifferentialExpression.csv']) {
+        csvText = deFiles['DifferentialExpression.csv'];
+      } else {
+        const key = Object.keys(deFiles).find(k => k === `DifferentialExpression-${contrast}.csv`);
+        if (key) csvText = deFiles[key];
+      }
+      if (csvText) {
+        Papa.parse<RawCSVRow>(csvText, {
+          header: true,
+          dynamicTyping: true,
+          complete: results => {
+            newData[contrast] = results.data;
+            setContrastData(prev => ({ ...prev, ...newData }));
+          },
+        });
+      }
+    });
+  }, [debouncedContrasts, deFiles, contrastData]);
 
   const allDataLoaded = debouncedContrasts.every(c => contrastData[c] && contrastData[c].length > 0);
 
@@ -218,10 +210,12 @@ export default function VolcanoPlot() {
     if (values.length <= 4) setSelectedContrasts(values);
   };
 
-  const multiSelectOptions = availableContrasts.map(contrast => ({
-    label: contrast.toUpperCase(),
-    value: contrast,
-  }));
+  const multiSelectOptions = availableContrasts
+    .filter(c => c !== 'default')
+    .map(contrast => ({
+      label: contrast.toUpperCase(),
+      value: contrast,
+    }));
 
   const renderPlot = (contrast: string) => {
     const data = processedData[contrast];
@@ -280,6 +274,8 @@ export default function VolcanoPlot() {
     );
   };
 
+  const showDropdown = availableContrasts.length > 1;
+
   if (loading || !allDataLoaded) {
     return (
       <div className='w-full px-4 sm:px-6 lg:px-8 max-w-[95vw] lg:max-w-[1500px] mx-auto'>
@@ -296,22 +292,24 @@ export default function VolcanoPlot() {
       <div className='mb-8'>
         <div className='max-w-4xl mx-auto mb-6'>
           <div className='flex flex-col md:flex-row gap-4 items-start'>
-            <div className='flex-1'>
-              <label className='block text-sm font-semibold text-gray-700 mb-2'>Select Contrasts (up to 4):</label>
-              <MultiSelect
-                options={multiSelectOptions}
-                selectedValues={selectedContrasts}
-                onChange={handleContrastChange}
-                placeholder='Select contrasts...'
-                className='w-full'
-              />
-              {selectedContrasts.length > 0 && (
-                <p className='text-xs text-gray-500 mt-1'>
-                  {selectedContrasts.length} contrast{selectedContrasts.length !== 1 ? 's' : ''} selected
-                  {selectedContrasts.length >= 4 && ' (maximum reached)'}
-                </p>
-              )}
-            </div>
+            {showDropdown && (
+              <div className='flex-1'>
+                <label className='block text-sm font-semibold text-gray-700 mb-2'>Select Contrasts (up to 4):</label>
+                <MultiSelect
+                  options={multiSelectOptions}
+                  selectedValues={selectedContrasts}
+                  onChange={handleContrastChange}
+                  placeholder='Select contrasts...'
+                  className='w-full'
+                />
+                {selectedContrasts.length > 0 && (
+                  <p className='text-xs text-gray-500 mt-1'>
+                    {selectedContrasts.length} contrast{selectedContrasts.length !== 1 ? 's' : ''} selected
+                    {selectedContrasts.length >= 4 && ' (maximum reached)'}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className='flex gap-4 items-start pt-[5px]'>
               <div className='flex flex-col'>
@@ -363,7 +361,11 @@ export default function VolcanoPlot() {
           {debouncedContrasts.length === 1 ? (
             <div className='w-full min-h-[60vh] md:min-h-[65vh] xl:min-h-[70vh]'>
               <div>
-                <h3 className='text-center font-semibold text-lg mb-4'>{debouncedContrasts[0].toUpperCase()}</h3>
+                <h3 className='text-center font-semibold text-lg mb-4'>
+                  {debouncedContrasts[0] === 'default'
+                    ? 'Differential Expression'
+                    : debouncedContrasts[0].toUpperCase()}
+                </h3>
                 <div className='w-full h-full'>{renderPlot(debouncedContrasts[0])}</div>
               </div>
             </div>
@@ -373,7 +375,9 @@ export default function VolcanoPlot() {
                 {debouncedContrasts.map(contrast => (
                   <div key={contrast} className='w-full h-[280px]'>
                     <div className='h-full'>
-                      <h3 className='text-center font-semibold text-sm mb-1'>{contrast.toUpperCase()}</h3>
+                      <h3 className='text-center font-semibold text-sm mb-1'>
+                        {contrast === 'default' ? 'Differential Expression' : contrast.toUpperCase()}
+                      </h3>
                       <div className='h-[240px]'>{renderPlot(contrast)}</div>
                     </div>
                   </div>
@@ -386,7 +390,9 @@ export default function VolcanoPlot() {
                 {debouncedContrasts.map(contrast => (
                   <div key={contrast} className='w-full min-h-[400px] md:min-h-[450px] xl:min-h-[500px]'>
                     <div className='h-full'>
-                      <h3 className='text-center font-semibold text-lg mb-4'>{contrast.toUpperCase()}</h3>
+                      <h3 className='text-center font-semibold text-lg mb-4'>
+                        {contrast === 'default' ? 'Differential Expression' : contrast.toUpperCase()}
+                      </h3>
                       <div className='w-full h-[calc(100%-3rem)]'>{renderPlot(contrast)}</div>
                     </div>
                   </div>

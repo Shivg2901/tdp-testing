@@ -50,8 +50,8 @@ export default function SideBarLayout({ children }: { children: React.ReactNode 
               className={`transition-colors p-2 rounded border border-transparent 
               ${pathname === '/pdcs' ? 'bg-white text-primary' : 'hover:bg-white/20 focus:bg-white/30'}`}
             >
-              <Link href='/pdcs' className='flex items-center outline-none'>
-                <ChartColumn size={20} className='mr-2' /> PDCS
+              <Link href='/data-commons' className='flex items-center outline-none'>
+                <ChartColumn size={20} className='mr-2' /> ALXN Data Common
               </Link>
             </li>
           </ul>

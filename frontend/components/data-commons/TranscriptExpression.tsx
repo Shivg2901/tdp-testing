@@ -21,7 +21,17 @@ type DataSource = 'gene' | 'transcript';
 
 const GROUP_COLORS = ['#3182ce', '#e53e3e', '#38a169', '#d69e2e', '#805ad5', '#319795', '#dd6b20', '#718096'];
 
-export default function TranscriptExpression() {
+interface TranscriptExpressionProps {
+  samplesheetUrl?: string;
+  geneCountsUrl?: string;
+  transcriptCountsUrl?: string;
+}
+
+export default function TranscriptExpression({
+  samplesheetUrl,
+  geneCountsUrl,
+  transcriptCountsUrl,
+}: TranscriptExpressionProps) {
   const [geneList, setGeneList] = useState<string[]>([]);
   const [selectedGenes, setSelectedGenes] = useState<Set<string>>(new Set());
   const [geneData, setGeneData] = useState<GeneRow[]>([]);
@@ -31,26 +41,16 @@ export default function TranscriptExpression() {
   const [groupToColor, setGroupToColor] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [dataSource, setDataSource] = useState<DataSource>('gene');
-  const [transcriptFileExists, setTranscriptFileExists] = useState(false);
-  const [checkingTranscriptFile, setCheckingTranscriptFile] = useState(true);
   const [sampleDataExists, setSampleDataExists] = useState(false);
 
   useEffect(() => {
-    setCheckingTranscriptFile(true);
-    fetch('/bar-transcript.csv', { method: 'HEAD' })
-      .then(response => {
-        setTranscriptFileExists(response.ok);
-      })
-      .catch(() => {
-        setTranscriptFileExists(false);
-      })
-      .finally(() => {
-        setCheckingTranscriptFile(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetch('/sample.csv')
+    if (!samplesheetUrl) {
+      setSampleDataExists(false);
+      setSampleToGroup({});
+      setGroupToColor({});
+      return;
+    }
+    fetch(samplesheetUrl)
       .then(res => {
         if (!res.ok) {
           throw new Error('Sample file not found');
@@ -81,16 +81,20 @@ export default function TranscriptExpression() {
         });
       })
       .catch(() => {
-        console.log('Sample data not available, using default colors');
         setSampleDataExists(false);
         setSampleToGroup({});
         setGroupToColor({});
       });
-  }, []);
+  }, [samplesheetUrl]);
 
   useEffect(() => {
     setLoading(true);
-    fetch('/bar-gene.csv')
+    if (!geneCountsUrl) {
+      setGeneData([]);
+      setLoading(false);
+      return;
+    }
+    fetch(geneCountsUrl)
       .then(res => res.text())
       .then(text => {
         Papa.parse<GeneRow>(text, {
@@ -104,12 +108,16 @@ export default function TranscriptExpression() {
         });
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [geneCountsUrl]);
 
   useEffect(() => {
-    if (!transcriptFileExists) return;
-
-    fetch('/bar-transcript.csv')
+    setLoading(true);
+    if (!transcriptCountsUrl) {
+      setTranscriptData([]);
+      setLoading(false);
+      return;
+    }
+    fetch(transcriptCountsUrl)
       .then(res => res.text())
       .then(text => {
         Papa.parse<GeneRow>(text, {
@@ -118,13 +126,15 @@ export default function TranscriptExpression() {
           complete: results => {
             const data = results.data as GeneRow[];
             setTranscriptData(data);
+            setLoading(false);
           },
         });
       })
       .catch(() => {
-        console.error('Failed to load transcript data');
+        setTranscriptData([]);
+        setLoading(false);
       });
-  }, [transcriptFileExists]);
+  }, [transcriptCountsUrl]);
 
   useEffect(() => {
     const currentData = dataSource === 'gene' ? geneData : transcriptData;
@@ -216,7 +226,7 @@ export default function TranscriptExpression() {
     setDataSource(checked ? 'transcript' : 'gene');
   };
 
-  const isLoading = loading || checkingTranscriptFile;
+  const isLoading = loading;
 
   return (
     <div className='w-full px-4 sm:px-6 lg:px-8 max-w-[95vw] lg:max-w-[1500px] mx-auto'>

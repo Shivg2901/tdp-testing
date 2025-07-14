@@ -1,14 +1,14 @@
 'use client';
 
-import PCA from '@/components/pdcs/PCA';
-import TranscriptExpression from '@/components/pdcs/TranscriptExpression';
-import VolcanoPlot from '@/components/pdcs/VolcanoPlot';
+import PCA from '@/components/data-commons/PCA';
+import TranscriptExpression from '@/components/data-commons/TranscriptExpression';
+import VolcanoPlot from '@/components/data-commons/VolcanoPlot';
 import { Spinner } from '@/components/ui/spinner';
 import { DEFAULT_EDGE_COLOR } from '@/lib/data';
 import '@react-sigma/core/lib/style.css';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const SigmaContainer = dynamic(() => import('@/components/graph').then(module => module.SigmaContainer), {
   loading: () => (
@@ -29,6 +29,34 @@ function PDCSNetworkTabs() {
     { key: 'de', label: 'Differential expression analysis' },
   ];
   const [activeTab, setActiveTab] = React.useState(tabNames[0].key);
+
+  const searchParams = useSearchParams();
+  const group = searchParams?.get('group');
+  const program = searchParams?.get('program');
+  const project = searchParams?.get('project');
+  const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+  const [files, setFiles] = useState<Record<string, boolean | string[]>>({});
+  const [deFiles, setDeFiles] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (group && program && project) {
+      fetch(
+        `${API_BASE}/data-commons/project/${encodeURIComponent(group)}/${encodeURIComponent(program)}/${encodeURIComponent(project)}/file-status`,
+      )
+        .then(res => res.json())
+        .then(status => setFiles(status));
+
+      fetch(
+        `${API_BASE}/data-commons/project/${encodeURIComponent(group)}/${encodeURIComponent(program)}/${encodeURIComponent(project)}/files/DifferentialExpression`,
+      )
+        .then(res => res.json())
+        .then(data => setDeFiles(data));
+    }
+  }, [group, program, project, API_BASE]);
+
+  const getFileUrl = (filename: string) =>
+    `${API_BASE}/data-commons/project/${encodeURIComponent(group ?? '')}/${encodeURIComponent(program ?? '')}/${encodeURIComponent(project ?? '')}/files/${encodeURIComponent(filename)}`;
 
   return (
     <div className='w-full h-full flex flex-col'>
@@ -52,9 +80,26 @@ function PDCSNetworkTabs() {
       </div>
       <div className='flex-1 p-6'>
         <div className='mt-4'>
-          {activeTab === 'transcript' && <TranscriptExpression></TranscriptExpression>}
-          {activeTab === 'pca' && <PCA></PCA>}
-          {activeTab === 'de' && <VolcanoPlot></VolcanoPlot>}
+          {activeTab === 'transcript' && (
+            <TranscriptExpression
+              samplesheetUrl={files['samplesheet.valid.csv'] ? getFileUrl('samplesheet.valid.csv') : undefined}
+              geneCountsUrl={
+                files['salmon.merged.gene_counts.tsv'] ? getFileUrl('salmon.merged.gene_counts.tsv') : undefined
+              }
+              transcriptCountsUrl={
+                files['salmon.merged.transcript_counts.tsv']
+                  ? getFileUrl('salmon.merged.transcript_counts.tsv')
+                  : undefined
+              }
+            />
+          )}
+          {activeTab === 'pca' && (
+            <PCA
+              samplesheetUrl={files['samplesheet.valid.csv'] ? getFileUrl('samplesheet.valid.csv') : undefined}
+              pcaUrl={files['PCA.csv'] ? getFileUrl('PCA.csv') : undefined}
+            />
+          )}
+          {activeTab === 'de' && <VolcanoPlot deFiles={deFiles} />}
         </div>
       </div>
     </div>
@@ -64,8 +109,11 @@ function PDCSNetworkTabs() {
 export default function NetworkPage() {
   const searchParams = useSearchParams();
   const isPDCS = searchParams?.get('pdcs') === '1';
+  const group = searchParams?.get('group');
+  const program = searchParams?.get('program');
+  const project = searchParams?.get('project');
 
-  if (isPDCS) {
+  if (isPDCS || (group && program && project)) {
     return <PDCSNetworkTabs />;
   }
   return (

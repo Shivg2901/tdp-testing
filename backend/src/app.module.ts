@@ -9,6 +9,7 @@ import { RedisModule } from './redis/redis.module';
 import { RedisService } from './redis/redis.service';
 import { FeedbackModule } from './feedback/feedback.module';
 import { ClickhouseModule } from './clickhouse/clickhouse.module';
+import { DataCommonsModule } from './data-commons/dataCommons.moudle';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ClickhouseModule } from './clickhouse/clickhouse.module';
     },
     FeedbackModule,
     ClickhouseModule,
+    DataCommonsModule,
   ],
   controllers: [AppController],
 })

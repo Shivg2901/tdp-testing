@@ -29,13 +29,98 @@ const COLORS = [
   '#17becf',
 ];
 
-export default function PCA() {
+interface PCAProps {
+  samplesheetUrl?: string;
+  pcaUrl?: string;
+}
+
+export default function PCA({ samplesheetUrl, pcaUrl }: PCAProps) {
   const [traces, setTraces] = useState<Partial<PlotData>[]>([]);
   const [groupToColor, setGroupToColor] = useState<Record<string, string>>({});
   const [sampleDataExists, setSampleDataExists] = useState(false);
 
   useEffect(() => {
-    fetch('/sample.csv')
+    const loadPCAData = (
+      idToGroup: Record<string, string>,
+      groupColor: Record<string, string>,
+      hasSampleData: boolean,
+    ) => {
+      if (!pcaUrl) {
+        setTraces([]);
+        return;
+      }
+      fetch(pcaUrl)
+        .then(res => res.text())
+        .then(pcaText => {
+          Papa.parse<PCARow>(pcaText, {
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+            complete: pcaResults => {
+              if (!hasSampleData) {
+                const allData = {
+                  x: [] as number[],
+                  y: [] as number[],
+                  text: [] as string[],
+                };
+
+                pcaResults.data.forEach(row => {
+                  allData.x.push(row.PC1);
+                  allData.y.push(row.PC2);
+                  allData.text.push(row['ENSCGRG-Id']);
+                });
+
+                const traces: Partial<PlotData>[] = [
+                  {
+                    x: allData.x,
+                    y: allData.y,
+                    text: allData.text.map(id => `ID: ${id}`),
+                    type: 'scatter',
+                    mode: 'markers',
+                    name: 'Data Points',
+                    marker: { color: '#6b7280', size: 7 },
+                    hovertemplate: '%{text}<extra></extra>',
+                  },
+                ];
+                setTraces(traces);
+              } else {
+                const grouped: Record<string, { x: number[]; y: number[]; text: string[] }> = {};
+                pcaResults.data.forEach(row => {
+                  const group = idToGroup[row['ENSCGRG-Id']] || 'Unknown';
+                  if (!grouped[group]) grouped[group] = { x: [], y: [], text: [] };
+                  grouped[group].x.push(row.PC1);
+                  grouped[group].y.push(row.PC2);
+                  grouped[group].text.push(row['ENSCGRG-Id']);
+                });
+
+                const traces: Partial<PlotData>[] = Object.entries(grouped).map(([group, data], idx) => ({
+                  x: data.x,
+                  y: data.y,
+                  text: data.text.map(id => `ID: ${id}<br>Group: ${group}`),
+                  type: 'scatter',
+                  mode: 'markers',
+                  name: group,
+                  marker: { color: groupColor[group] || COLORS[idx % COLORS.length], size: 7 },
+                  hovertemplate: '%{text}<extra></extra>',
+                }));
+                setTraces(traces);
+              }
+            },
+          });
+        })
+        .catch(() => {
+          setTraces([]);
+        });
+    };
+
+    if (!samplesheetUrl) {
+      setSampleDataExists(false);
+      setGroupToColor({});
+      loadPCAData({}, {}, false);
+      return;
+    }
+
+    fetch(samplesheetUrl)
       .then(res => {
         if (!res.ok) {
           throw new Error('Sample file not found');
@@ -62,87 +147,16 @@ export default function PCA() {
             });
             setGroupToColor(groupColor);
             setSampleDataExists(true);
-
             loadPCAData(idToGroup, groupColor, true);
           },
         });
       })
       .catch(() => {
-        console.log('Sample data not available, using default colors');
         setSampleDataExists(false);
         setGroupToColor({});
         loadPCAData({}, {}, false);
       });
-  }, []);
-
-  const loadPCAData = (
-    idToGroup: Record<string, string>,
-    groupColor: Record<string, string>,
-    hasSampleData: boolean,
-  ) => {
-    fetch('/PCA.csv')
-      .then(res => res.text())
-      .then(pcaText => {
-        Papa.parse<PCARow>(pcaText, {
-          header: true,
-          dynamicTyping: true,
-          skipEmptyLines: true,
-          complete: pcaResults => {
-            if (!hasSampleData) {
-              const allData = {
-                x: [] as number[],
-                y: [] as number[],
-                text: [] as string[],
-              };
-
-              pcaResults.data.forEach(row => {
-                allData.x.push(row.PC1);
-                allData.y.push(row.PC2);
-                allData.text.push(row['ENSCGRG-Id']);
-              });
-
-              const traces: Partial<PlotData>[] = [
-                {
-                  x: allData.x,
-                  y: allData.y,
-                  text: allData.text.map(id => `ID: ${id}`),
-                  type: 'scatter',
-                  mode: 'markers',
-                  name: 'Data Points',
-                  marker: { color: '#6b7280', size: 7 },
-                  hovertemplate: '%{text}<extra></extra>',
-                },
-              ];
-              setTraces(traces);
-            } else {
-              const grouped: Record<string, { x: number[]; y: number[]; text: string[] }> = {};
-              pcaResults.data.forEach(row => {
-                const group = idToGroup[row['ENSCGRG-Id']] || 'Unknown';
-                if (!grouped[group]) grouped[group] = { x: [], y: [], text: [] };
-                grouped[group].x.push(row.PC1);
-                grouped[group].y.push(row.PC2);
-                grouped[group].text.push(row['ENSCGRG-Id']);
-              });
-
-              const traces: Partial<PlotData>[] = Object.entries(grouped).map(([group, data], idx) => ({
-                x: data.x,
-                y: data.y,
-                text: data.text.map(id => `ID: ${id}<br>Group: ${group}`),
-                type: 'scatter',
-                mode: 'markers',
-                name: group,
-                marker: { color: groupColor[group] || COLORS[idx % COLORS.length], size: 7 },
-                hovertemplate: '%{text}<extra></extra>',
-              }));
-              setTraces(traces);
-            }
-          },
-        });
-      })
-      .catch(error => {
-        console.error('Failed to load PCA data:', error);
-      });
-  };
+  }, [samplesheetUrl, pcaUrl]);
 
   function renderGroupLegend() {
     if (!sampleDataExists) return null;
