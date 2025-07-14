@@ -73,7 +73,7 @@ export default function DataCommonsPage() {
   const handleGoToPlots = () => {
     if (selectedGroup && selectedProgram && selectedProject) {
       router.push(
-        `/network?group=${encodeURIComponent(selectedGroup)}&program=${encodeURIComponent(selectedProgram)}&project=${encodeURIComponent(selectedProject)}`,
+        `/data-plots?group=${encodeURIComponent(selectedGroup)}&program=${encodeURIComponent(selectedProgram)}&project=${encodeURIComponent(selectedProject)}`,
       );
     }
   };
