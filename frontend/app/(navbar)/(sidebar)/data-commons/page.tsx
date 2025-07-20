@@ -88,13 +88,7 @@ export default function DataCommonsPage() {
       >
         A Centralized Data Commons of Multi-Omics Data for Exploratory Research
       </h2>
-      <div className='px-8 pt-4 pb-2 text-base text-gray-700'>
-        <p>
-          This section allows you to explore and visualize multi-omics data. Select a group, program, and project to
-          view available data and project description.
-        </p>
-      </div>
-      <form className='px-8 py-8'>
+      <form className='px-8 pb-4'>
         <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
           <div>
             <Label htmlFor='group'>Select Group</Label>
@@ -182,9 +176,8 @@ export default function DataCommonsPage() {
       {loading && <div className='px-8 pb-4'>Loading project description...</div>}
       {descriptionUrl && (
         <div className='px-8 pb-8'>
-          <Label>Project Description</Label>
           <div
-            className='mt-2 rounded border shadow'
+            className='mt-2'
             style={{ maxWidth: '100%', maxHeight: 400, position: 'relative', width: '100%', height: 400 }}
           >
             <Image

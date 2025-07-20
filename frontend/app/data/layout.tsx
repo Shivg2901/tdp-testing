@@ -26,7 +26,7 @@ export default function NetworkLayoutPage({ children }: { children: React.ReactN
 
       <ResizablePanelGroup direction='horizontal' className='flex flex-1'>
         <ResizablePanel defaultSize={16} minSize={16} className={leftSidebar ? 'block' : 'hidden'}>
-          <LeftSideBar />
+          <LeftSideBar graphConfigPresent={false} />
         </ResizablePanel>
         <ResizableHandle withHandle className={leftSidebar ? 'flex' : 'hidden'} />
         <ResizablePanel defaultSize={68} className='bg-white h-full w-full'>

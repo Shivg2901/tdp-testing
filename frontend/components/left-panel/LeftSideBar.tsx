@@ -30,7 +30,7 @@ import { Label } from '../ui/label';
 import { ScrollArea } from '../ui/scroll-area';
 import { Spinner } from '../ui/spinner';
 
-export function LeftSideBar() {
+export function LeftSideBar({ graphConfigPresent = true }: { graphConfigPresent?: boolean }) {
   const diseaseName = useStore(state => state.diseaseName);
   const geneIDs = useStore(state => state.geneIDs);
   const bringCommon = useRef<boolean>(true);
@@ -38,8 +38,8 @@ export function LeftSideBar() {
   const [diseaseMap, setDiseaseMap] = React.useState<string>('MONDO_0004976');
   useEffect(() => {
     const graphConfig = localStorage.getItem('graphConfig');
-    if (!graphConfig) redirect('/');
-    const diseaseMap = JSON.parse(graphConfig).diseaseMap;
+    if (!graphConfig && graphConfigPresent) redirect('/');
+    const diseaseMap = graphConfig ? JSON.parse(graphConfig).diseaseMap : 'MONDO_0004976';
     useStore.setState({
       diseaseName: diseaseMap || 'MONDO_0004976',
     });
@@ -49,7 +49,7 @@ export function LeftSideBar() {
       const data = await response.json();
       setDiseaseData(data);
     })();
-  }, []);
+  }, [graphConfigPresent]);
 
   const [fetchHeader, { loading, called }] = useLazyQuery<GetHeadersData, GetHeadersVariables>(
     GET_HEADERS_QUERY(bringCommon.current),
