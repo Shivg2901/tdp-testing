@@ -10,7 +10,8 @@ const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 type Project = {
   name: string;
-  studies: { name: string; hasData: boolean; files: string[] }[];
+  hasData: boolean;
+  files: string[];
 };
 
 type Program = {
@@ -39,14 +40,10 @@ export default function DataCommonsPage() {
   }, []);
 
   const groupObj = structure.find(g => g.name === selectedGroup);
-  const programs =
-    groupObj?.programs.filter(p =>
-      p.projects.some(prj => prj.studies.some(study => study.hasData && study.files.length > 0)),
-    ) || [];
+  const programs = groupObj?.programs.filter(p => p.projects.some(prj => prj.hasData && prj.files.length > 0)) || [];
 
   const programObj = programs.find(p => p.name === selectedProgram);
-  const projects =
-    programObj?.projects.filter(prj => prj.studies.some(study => study.hasData && study.files.length > 0)) || [];
+  const projects = programObj?.projects.filter(prj => prj.hasData && prj.files.length > 0) || [];
 
   React.useEffect(() => {
     if (selectedGroup && selectedProgram && selectedProject) {
@@ -56,7 +53,7 @@ export default function DataCommonsPage() {
       )
         .then(res => res.json())
         .then(status => {
-          if (status['project_description.png']) {
+          if (status['project_description']) {
             setDescriptionUrl(
               `${API_BASE}/data-commons/project/${encodeURIComponent(selectedGroup)}/${encodeURIComponent(selectedProgram)}/${encodeURIComponent(selectedProject)}/description`,
             );
@@ -105,11 +102,7 @@ export default function DataCommonsPage() {
               </SelectTrigger>
               <SelectContent>
                 {structure
-                  .filter(g =>
-                    g.programs.some(p =>
-                      p.projects.some(prj => prj.studies.some(study => study.hasData && study.files.length > 0)),
-                    ),
-                  )
+                  .filter(g => g.programs.some(p => p.projects.some(prj => prj.hasData && prj.files.length > 0)))
                   .map(group => (
                     <SelectItem key={group.name} value={group.name}>
                       {group.name}

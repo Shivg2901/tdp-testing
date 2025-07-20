@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  ALLOWED_EXTENSIONS,
+  findDifferentialExpressionFiles,
+  findFirstFileWithExtension,
+  getDirectories,
+  getFiles,
+} from './dataCommons.utils';
 
 const DATA_PATH =
   process.env.DATA_COMMONS_PATH ||
@@ -10,51 +17,21 @@ const DATA_PATH =
 export class DataCommonsService {
   getFullStructure() {
     const structure = [];
-    const groups = fs
-      .readdirSync(DATA_PATH)
-      .filter((f) => fs.statSync(path.join(DATA_PATH, f)).isDirectory());
+    const groups = getDirectories(DATA_PATH);
     for (const group of groups) {
       const groupObj: any = { name: group, programs: [] };
       const groupPath = path.join(DATA_PATH, group);
-      const programs = fs
-        .readdirSync(groupPath)
-        .filter((f) => fs.statSync(path.join(groupPath, f)).isDirectory());
+      const programs = getDirectories(groupPath);
       for (const program of programs) {
         const programObj: any = { name: program, projects: [] };
         const programPath = path.join(groupPath, program);
-        const projects = fs
-          .readdirSync(programPath)
-          .filter((f) => fs.statSync(path.join(programPath, f)).isDirectory());
+        const projects = getDirectories(programPath);
         for (const project of projects) {
-          const projectObj: any = { name: project, studies: [] };
+          const projectObj: any = { name: project, files: [] };
           const projectPath = path.join(programPath, project);
-          const studies = fs
-            .readdirSync(projectPath)
-            .filter((f) =>
-              fs.statSync(path.join(projectPath, f)).isDirectory(),
-            );
-          if (studies.length === 0) {
-            const files = fs
-              .readdirSync(projectPath)
-              .filter((f) => fs.statSync(path.join(projectPath, f)).isFile());
-            projectObj.studies.push({
-              name: project,
-              hasData: files.length > 0,
-              files: files,
-            });
-          } else {
-            for (const study of studies) {
-              const studyPath = path.join(projectPath, study);
-              const files = fs
-                .readdirSync(studyPath)
-                .filter((f) => fs.statSync(path.join(studyPath, f)).isFile());
-              projectObj.studies.push({
-                name: study,
-                hasData: files.length > 0,
-                files: files,
-              });
-            }
-          }
+          const files = getFiles(projectPath);
+          projectObj.hasData = files.length > 0;
+          projectObj.files = files;
           programObj.projects.push(projectObj);
         }
         groupObj.programs.push(programObj);
@@ -67,7 +44,6 @@ export class DataCommonsService {
   getProjectFilesStatus(group: string, program: string, project: string) {
     const projectPath = path.join(DATA_PATH, group, program, project);
     const expectedFiles = [
-      'project_description.png',
       'samplesheet.valid.csv',
       'contrastsheet.valid.csv',
       'salmon.merged.gene_counts.tsv',
@@ -75,7 +51,11 @@ export class DataCommonsService {
       'PCA.csv',
     ];
 
-    const filesPresent: Record<string, boolean | string[]> = {};
+    type FilesPresent = {
+      [key: string]: boolean | string[] | string | false;
+    };
+
+    const filesPresent: FilesPresent = {};
     let filesInProject: string[] = [];
     try {
       filesInProject = fs.readdirSync(projectPath);
@@ -87,11 +67,13 @@ export class DataCommonsService {
       filesPresent[file] = filesInProject.includes(file);
     }
 
-    const deFiles = filesInProject.filter(
-      (f) =>
-        f === 'DifferentialExpression.csv' ||
-        (f.startsWith('DifferentialExpression-') && f.endsWith('.csv')),
+    const descriptionFile = findFirstFileWithExtension(
+      filesInProject,
+      ALLOWED_EXTENSIONS,
     );
+    filesPresent['project_description'] = descriptionFile || false;
+
+    const deFiles = findDifferentialExpressionFiles(filesInProject);
     filesPresent['DifferentialExpression.csv'] =
       deFiles.length > 0 ? deFiles : false;
 
@@ -104,17 +86,30 @@ export class DataCommonsService {
     project: string,
     res: any,
   ) {
-    const filePath = path.join(
-      DATA_PATH,
-      group,
-      program,
-      project,
-      'project_description.png',
+    const projectPath = path.join(DATA_PATH, group, program, project);
+    const allowedExtensions = [
+      '.png',
+      '.jpg',
+      '.jpeg',
+      '.pdf',
+      '.ppt',
+      '.pptx',
+      '.doc',
+      '.docx',
+    ];
+    if (!fs.existsSync(projectPath)) {
+      res.status(404).send('Project folder not found');
+      return;
+    }
+    const files = fs.readdirSync(projectPath);
+    const descriptionFile = files.find((f) =>
+      allowedExtensions.some((ext) => f.toLowerCase().endsWith(ext)),
     );
-    if (fs.existsSync(filePath)) {
+    if (descriptionFile) {
+      const filePath = path.join(projectPath, descriptionFile);
       res.sendFile(filePath);
     } else {
-      res.status(404).send('project_description.png not found');
+      res.status(404).send('No description file found');
     }
   }
 
