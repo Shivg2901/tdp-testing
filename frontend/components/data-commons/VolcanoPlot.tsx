@@ -6,12 +6,7 @@ import Papa from 'papaparse';
 import type { Shape } from 'plotly.js';
 import { MultiSelect } from '../ui/multiselect';
 
-type RawCSVRow = {
-  'ENSCGRG-Id': string;
-  logFC: number;
-  PValue: number;
-  FDR: number;
-};
+type GenericRow = Record<string, string | number | null>;
 
 type Point = {
   x: number;
@@ -41,13 +36,14 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
   const [availableContrasts, setAvailableContrasts] = useState<string[]>([]);
   const [selectedContrasts, setSelectedContrasts] = useState<string[]>([]);
   const [debouncedContrasts, setDebouncedContrasts] = useState<string[]>([]);
-  const [contrastData, setContrastData] = useState<Record<string, RawCSVRow[]>>({});
+  const [contrastData, setContrastData] = useState<Record<string, { id: string; logFC: number; PValue: number }[]>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [cutoff, setCutoff] = useState<number>(1);
   const [cutoffInput, setCutoffInput] = useState<string>('1');
   const [yThreshold, setYThreshold] = useState<number>(0.01);
   const [yThresholdInput, setYThresholdInput] = useState<string>('0.01');
 
+  // Load available contrasts from deFiles
   useEffect(() => {
     if (!deFiles || Object.keys(deFiles).length === 0) {
       setAvailableContrasts([]);
@@ -62,23 +58,23 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
       return match ? match[1] : filename;
     });
     setAvailableContrasts(contrastNames);
-    setSelectedContrasts(contrastNames.length === 1 ? [contrastNames[0]] : [contrastNames[0]]);
+    setSelectedContrasts([contrastNames[0]]);
     setLoading(false);
   }, [deFiles]);
 
+  // Debounce contrast selection
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedContrasts(selectedContrasts);
-    }, 150);
+    const timer = setTimeout(() => setDebouncedContrasts(selectedContrasts), 150);
     return () => clearTimeout(timer);
   }, [selectedContrasts]);
 
+  // Load contrast data from CSV
   useEffect(() => {
     if (!deFiles) return;
     const toFetch = debouncedContrasts.filter(c => !contrastData[c]);
     if (toFetch.length === 0) return;
 
-    const newData: Record<string, RawCSVRow[]> = {};
+    const newData: Record<string, { id: string; logFC: number; PValue: number }[]> = {};
 
     toFetch.forEach(contrast => {
       let csvText = '';
@@ -89,11 +85,31 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
         if (key) csvText = deFiles[key];
       }
       if (csvText) {
-        Papa.parse<RawCSVRow>(csvText, {
+        Papa.parse<GenericRow>(csvText, {
           header: true,
           dynamicTyping: true,
+          skipEmptyLines: true,
           complete: results => {
-            newData[contrast] = results.data;
+            const headers = results.meta.fields ?? [];
+            const idKey = headers[0];
+            const logFCKey = headers.find(h => h.toLowerCase() === 'logfc') || headers.find(h => /fc/i.test(h));
+            const pvalKey =
+              headers.find(h => h.toLowerCase() === 'pvalue') || headers.find(h => /p[\s\-]?val/i.test(h));
+            if (!logFCKey || !pvalKey) {
+              console.warn(`Skipping file ${contrast} due to missing logFC or PValue columns`);
+              return;
+            }
+            const filtered = results.data.filter(
+              row =>
+                typeof row[logFCKey!] === 'number' &&
+                typeof row[pvalKey!] === 'number' &&
+                typeof row[idKey] === 'string',
+            );
+            newData[contrast] = filtered.map(row => ({
+              id: row[idKey] as string,
+              logFC: row[logFCKey!] as number,
+              PValue: row[pvalKey!] as number,
+            }));
             setContrastData(prev => ({ ...prev, ...newData }));
           },
         });
@@ -103,6 +119,7 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
 
   const allDataLoaded = debouncedContrasts.every(c => contrastData[c] && contrastData[c].length > 0);
 
+  // Calculate plot bounds
   const calculateBounds = (points: Point[]): Bounds => {
     if (points.length === 0) return { xMin: -1, xMax: 1, yMin: 0, yMax: 5 };
     const xVals = points.map(p => p.x);
@@ -117,30 +134,27 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
     };
   };
 
+  // Process data for plotting
   const processedData = useMemo<Record<string, ProcessedData>>(() => {
     const result: Record<string, ProcessedData> = {};
-
     debouncedContrasts.forEach(contrast => {
       const rawData = contrastData[contrast] || [];
-      const points: Point[] = rawData
-        .filter(d => d.logFC !== undefined && d.PValue !== undefined)
-        .map(d => {
-          const logP = -Math.log10(d.PValue);
-          let color = 'gray';
-          if (d.logFC >= cutoff && d.PValue <= yThreshold) color = 'red';
-          else if (d.logFC <= -cutoff && d.PValue <= yThreshold) color = 'blue';
-          return { x: d.logFC, y: logP, text: d['ENSCGRG-Id'], color };
-        });
-
+      const points: Point[] = rawData.map(d => {
+        const logP = -Math.log10(d.PValue);
+        let color = 'gray';
+        if (d.logFC >= cutoff && d.PValue <= yThreshold) color = 'red';
+        else if (d.logFC <= -cutoff && d.PValue <= yThreshold) color = 'blue';
+        return { x: d.logFC, y: logP, text: d.id, color };
+      });
       result[contrast] = {
         points,
         bounds: calculateBounds(points),
       };
     });
-
     return result;
   }, [contrastData, debouncedContrasts, cutoff, yThreshold]);
 
+  // Create threshold lines
   const createShapes = (bounds: Bounds): Partial<Shape>[] => [
     {
       type: 'line',
@@ -174,38 +188,37 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
     },
   ];
 
+  // Handle plot relayout (threshold dragging)
   const handlePlotRelayout = (eventData: Record<string, unknown> | undefined) => {
     if (!eventData) return;
-
     Object.keys(eventData).forEach(key => {
       const match = key.match(/shapes\[(\d+)\]\.(.+)/);
       if (!match) return;
-
       const shapeIndex = Number.parseInt(match[1]);
       const property = match[2];
       const newValue = eventData[key];
-
-      if (shapeIndex === 0 || shapeIndex === 1) {
-        if ((property === 'x0' || property === 'x1') && typeof newValue === 'number') {
-          const newCutoff = Math.abs(newValue);
-          if (newCutoff !== cutoff && newCutoff >= 0) {
-            setCutoff(newCutoff);
-            setCutoffInput(newCutoff.toFixed(2));
-          }
+      if (
+        (shapeIndex === 0 || shapeIndex === 1) &&
+        (property === 'x0' || property === 'x1') &&
+        typeof newValue === 'number'
+      ) {
+        const newCutoff = Math.abs(newValue);
+        if (newCutoff !== cutoff && newCutoff >= 0) {
+          setCutoff(newCutoff);
+          setCutoffInput(newCutoff.toFixed(2));
         }
-      } else if (shapeIndex === 2) {
-        if ((property === 'y0' || property === 'y1') && typeof newValue === 'number') {
-          const logPValue = newValue;
-          const newPValue = Math.pow(10, -logPValue);
-          if (newPValue > 0 && newPValue <= 1 && Math.abs(newPValue - yThreshold) > 1e-6) {
-            setYThreshold(newPValue);
-            setYThresholdInput(newPValue < 0.001 ? newPValue.toExponential(2) : newPValue.toFixed(4));
-          }
+      } else if (shapeIndex === 2 && (property === 'y0' || property === 'y1') && typeof newValue === 'number') {
+        const logPValue = newValue;
+        const newPValue = Math.pow(10, -logPValue);
+        if (newPValue > 0 && newPValue <= 1 && Math.abs(newPValue - yThreshold) > 1e-6) {
+          setYThreshold(newPValue);
+          setYThresholdInput(newPValue < 0.001 ? newPValue.toExponential(2) : newPValue.toFixed(4));
         }
       }
     });
   };
 
+  // Handle contrast selection (max 4)
   const handleContrastChange = (values: string[]) => {
     if (values.length <= 4) setSelectedContrasts(values);
   };
@@ -217,10 +230,10 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
       value: contrast,
     }));
 
+  // Render volcano plot for a contrast
   const renderPlot = (contrast: string) => {
     const data = processedData[contrast];
     if (!data || data.points.length === 0) return null;
-
     return (
       <Plot
         data={[
@@ -228,7 +241,7 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
             x: data.points.map(p => p.x),
             y: data.points.map(p => p.y),
             text: data.points.map(p => `ID: ${p.text}`),
-            type: 'scattergl' as const,
+            type: 'scattergl',
             mode: 'markers',
             marker: {
               color: data.points.map(p => p.color),
@@ -295,13 +308,15 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
             {showDropdown && (
               <div className='flex-1'>
                 <label className='block text-sm font-semibold text-gray-700 mb-2'>Select Contrasts (up to 4):</label>
-                <MultiSelect
-                  options={multiSelectOptions}
-                  selectedValues={selectedContrasts}
-                  onChange={handleContrastChange}
-                  placeholder='Select contrasts...'
-                  className='w-full'
-                />
+                <div className='max-w-[620px]'>
+                  <MultiSelect
+                    options={multiSelectOptions}
+                    selectedValues={selectedContrasts}
+                    onChange={handleContrastChange}
+                    placeholder='Select contrasts...'
+                    className='truncate'
+                  />
+                </div>
                 {selectedContrasts.length > 0 && (
                   <p className='text-xs text-gray-500 mt-1'>
                     {selectedContrasts.length} contrast{selectedContrasts.length !== 1 ? 's' : ''} selected
@@ -360,40 +375,30 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
         <div className='w-full overflow-x-auto overflow-y-auto max-h-[90vh]'>
           {debouncedContrasts.length === 1 ? (
             <div className='w-full min-h-[60vh] md:min-h-[65vh] xl:min-h-[70vh]'>
-              <div>
-                <h3 className='text-center font-semibold text-lg mb-4'>
-                  {debouncedContrasts[0] === 'default'
-                    ? 'Differential Expression'
-                    : debouncedContrasts[0].toUpperCase()}
-                </h3>
-                <div className='w-full h-full'>{renderPlot(debouncedContrasts[0])}</div>
-              </div>
-            </div>
-          ) : debouncedContrasts.length >= 3 ? (
-            <div className='space-y-2'>
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                {debouncedContrasts.map(contrast => (
-                  <div key={contrast} className='w-full h-[280px]'>
-                    <div className='h-full'>
-                      <h3 className='text-center font-semibold text-sm mb-1'>
-                        {contrast === 'default' ? 'Differential Expression' : contrast.toUpperCase()}
-                      </h3>
-                      <div className='h-[240px]'>{renderPlot(contrast)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <h3 className='text-center font-semibold text-lg mb-4'>
+                {debouncedContrasts[0] === 'default' ? 'Differential Expression' : debouncedContrasts[0].toUpperCase()}
+              </h3>
+              <div className='w-full h-full'>{renderPlot(debouncedContrasts[0])}</div>
             </div>
           ) : (
             <div className='space-y-2'>
-              <div className='grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-2'>
+              <div
+                className={`grid gap-3 ${debouncedContrasts.length >= 3 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-2'}`}
+              >
                 {debouncedContrasts.map(contrast => (
-                  <div key={contrast} className='w-full min-h-[400px] md:min-h-[450px] xl:min-h-[500px]'>
+                  <div
+                    key={contrast}
+                    className={`w-full ${debouncedContrasts.length >= 3 ? 'h-[280px]' : 'min-h-[400px] md:min-h-[450px] xl:min-h-[500px]'}`}
+                  >
                     <div className='h-full'>
-                      <h3 className='text-center font-semibold text-lg mb-4'>
+                      <h3
+                        className={`text-center font-semibold ${debouncedContrasts.length >= 3 ? 'text-sm mb-1' : 'text-lg mb-4'}`}
+                      >
                         {contrast === 'default' ? 'Differential Expression' : contrast.toUpperCase()}
                       </h3>
-                      <div className='w-full h-[calc(100%-3rem)]'>{renderPlot(contrast)}</div>
+                      <div className={debouncedContrasts.length >= 3 ? 'h-[240px]' : 'w-full h-[calc(100%-3rem)]'}>
+                        {renderPlot(contrast)}
+                      </div>
                     </div>
                   </div>
                 ))}

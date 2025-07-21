@@ -5,15 +5,8 @@ import Papa from 'papaparse';
 import Plot from 'react-plotly.js';
 import type { PlotData } from 'plotly.js';
 
-type PCARow = {
-  'ENSCGRG-Id': string;
-  PC1: number;
-  PC2: number;
-};
-
-type SampleRow = {
-  'Sample name': string;
-  Group: string;
+type PCADataRow = {
+  [key: string]: string | number | undefined;
 };
 
 const COLORS = [
@@ -52,11 +45,25 @@ export default function PCA({ samplesheetUrl, pcaUrl }: PCAProps) {
       fetch(pcaUrl)
         .then(res => res.text())
         .then(pcaText => {
-          Papa.parse<PCARow>(pcaText, {
+          Papa.parse<PCADataRow>(pcaText, {
             header: true,
             dynamicTyping: true,
             skipEmptyLines: true,
             complete: pcaResults => {
+              const pcaHeader = pcaResults.meta.fields ?? [];
+              if (pcaHeader.length < 3) {
+                setTraces([]);
+                return;
+              }
+              const idKey = pcaHeader[0];
+              const pc1Key = pcaHeader[1];
+              const pc2Key = pcaHeader[2];
+
+              if (!idKey || !pc1Key || !pc2Key) {
+                setTraces([]);
+                return;
+              }
+
               if (!hasSampleData) {
                 const allData = {
                   x: [] as number[],
@@ -65,9 +72,11 @@ export default function PCA({ samplesheetUrl, pcaUrl }: PCAProps) {
                 };
 
                 pcaResults.data.forEach(row => {
-                  allData.x.push(row.PC1);
-                  allData.y.push(row.PC2);
-                  allData.text.push(row['ENSCGRG-Id']);
+                  if (typeof row[pc1Key] === 'number' && typeof row[pc2Key] === 'number' && row[idKey]) {
+                    allData.x.push(row[pc1Key] as number);
+                    allData.y.push(row[pc2Key] as number);
+                    allData.text.push(String(row[idKey]));
+                  }
                 });
 
                 const traces: Partial<PlotData>[] = [
@@ -86,11 +95,14 @@ export default function PCA({ samplesheetUrl, pcaUrl }: PCAProps) {
               } else {
                 const grouped: Record<string, { x: number[]; y: number[]; text: string[] }> = {};
                 pcaResults.data.forEach(row => {
-                  const group = idToGroup[row['ENSCGRG-Id']] || 'Unknown';
-                  if (!grouped[group]) grouped[group] = { x: [], y: [], text: [] };
-                  grouped[group].x.push(row.PC1);
-                  grouped[group].y.push(row.PC2);
-                  grouped[group].text.push(row['ENSCGRG-Id']);
+                  const id = row[idKey];
+                  const group = id && idToGroup[String(id)] ? idToGroup[String(id)] : 'Unknown';
+                  if (typeof row[pc1Key] === 'number' && typeof row[pc2Key] === 'number' && id) {
+                    if (!grouped[group]) grouped[group] = { x: [], y: [], text: [] };
+                    grouped[group].x.push(row[pc1Key] as number);
+                    grouped[group].y.push(row[pc2Key] as number);
+                    grouped[group].text.push(String(id));
+                  }
                 });
 
                 const traces: Partial<PlotData>[] = Object.entries(grouped).map(([group, data], idx) => ({
@@ -105,6 +117,9 @@ export default function PCA({ samplesheetUrl, pcaUrl }: PCAProps) {
                 }));
                 setTraces(traces);
               }
+            },
+            error: () => {
+              setTraces([]);
             },
           });
         })
@@ -128,16 +143,25 @@ export default function PCA({ samplesheetUrl, pcaUrl }: PCAProps) {
         return res.text();
       })
       .then(sampleText => {
-        Papa.parse<SampleRow>(sampleText, {
+        Papa.parse<PCADataRow>(sampleText, {
           header: true,
           skipEmptyLines: true,
           complete: sampleResults => {
+            const sampleHeader = sampleResults.meta.fields ?? [];
+            if (sampleHeader.length < 2) {
+              setSampleDataExists(false);
+              setGroupToColor({});
+              loadPCAData({}, {}, false);
+              return;
+            }
+            const nameKey = sampleHeader[0];
+            const groupKey = sampleHeader[1];
             const idToGroup: Record<string, string> = {};
             const groupSet = new Set<string>();
             sampleResults.data.forEach(row => {
-              if (row['Sample name'] && row.Group) {
-                idToGroup[row['Sample name']] = row.Group;
-                groupSet.add(row.Group);
+              if (row[nameKey] && row[groupKey]) {
+                idToGroup[String(row[nameKey])] = String(row[groupKey]);
+                groupSet.add(String(row[groupKey]));
               }
             });
             const groupArr = Array.from(groupSet).sort();
@@ -148,6 +172,11 @@ export default function PCA({ samplesheetUrl, pcaUrl }: PCAProps) {
             setGroupToColor(groupColor);
             setSampleDataExists(true);
             loadPCAData(idToGroup, groupColor, true);
+          },
+          error: () => {
+            setSampleDataExists(false);
+            setGroupToColor({});
+            loadPCAData({}, {}, false);
           },
         });
       })
