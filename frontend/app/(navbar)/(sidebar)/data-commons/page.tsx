@@ -96,110 +96,125 @@ export default function DataCommonsPage() {
     `${API_BASE}/data-commons/project/${encodeURIComponent(selectedGroup)}/${encodeURIComponent(selectedProgram)}/${encodeURIComponent(selectedProject)}/files/${encodeURIComponent(filename)}`;
 
   return (
-    <div className='w-full border rounded-lg shadow-md h-full'>
+    <div
+      className='w-full border rounded-lg shadow-md'
+      style={{ height: '85vh', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+    >
       <h2
         style={{
           background: 'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
         }}
-        className='text-2xl text-white rounded-t-lg font-semibold px-6 py-2 mb-6'
+        className='text-2xl text-white rounded-t-lg font-semibold px-6 py-2 mb-6 flex-shrink-0'
       >
         A Centralized Data Commons of Multi-Omics Data for Exploratory Research
       </h2>
-      <form className='px-8 pb-4'>
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-          <div>
-            <Label htmlFor='group'>Select Group</Label>
-            <Select
-              value={selectedGroup}
-              onValueChange={val => {
-                setSelectedGroup(val);
-                setSelectedProgram('');
-                setSelectedProject('');
-              }}
-            >
-              <SelectTrigger id='group'>
-                <SelectValue placeholder='Select group' />
-              </SelectTrigger>
-              <SelectContent>
-                {structure
-                  .filter(g => g.programs.some(p => p.projects.some(prj => prj.hasData && prj.files.length > 0)))
-                  .map(group => (
-                    <SelectItem key={group.name} value={group.name}>
-                      {group.name}
+
+      <div className='flex-shrink-0'>
+        <form className='px-8 pb-4'>
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <div>
+              <Label htmlFor='group'>Select Group</Label>
+              <Select
+                value={selectedGroup}
+                onValueChange={val => {
+                  setSelectedGroup(val);
+                  setSelectedProgram('');
+                  setSelectedProject('');
+                }}
+              >
+                <SelectTrigger id='group'>
+                  <SelectValue placeholder='Select group' />
+                </SelectTrigger>
+                <SelectContent>
+                  {structure
+                    .filter(g => g.programs.some(p => p.projects.some(prj => prj.hasData && prj.files.length > 0)))
+                    .map(group => (
+                      <SelectItem key={group.name} value={group.name}>
+                        {group.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor='program'>Select Program</Label>
+              <Select
+                value={selectedProgram}
+                onValueChange={val => {
+                  setSelectedProgram(val);
+                  setSelectedProject('');
+                }}
+                disabled={!selectedGroup}
+              >
+                <SelectTrigger id='program'>
+                  <SelectValue placeholder='Select program' />
+                </SelectTrigger>
+                <SelectContent>
+                  {programs.map(program => (
+                    <SelectItem key={program.name} value={program.name}>
+                      {program.name}
                     </SelectItem>
                   ))}
-              </SelectContent>
-            </Select>
-          </div>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div>
-            <Label htmlFor='program'>Select Program</Label>
-            <Select
-              value={selectedProgram}
-              onValueChange={val => {
-                setSelectedProgram(val);
-                setSelectedProject('');
+            <div>
+              <Label htmlFor='project'>Select Project</Label>
+              <Select value={selectedProject} onValueChange={setSelectedProject} disabled={!selectedProgram}>
+                <SelectTrigger id='project'>
+                  <SelectValue placeholder='Select project' />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map(project => (
+                    <SelectItem key={project.name} value={project.name}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </form>
+
+        {selectedGroup && selectedProgram && selectedProject && (
+          <div className='px-8 pb-4'>
+            <Button
+              type='button'
+              className='w-full'
+              style={{
+                background: 'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
               }}
-              disabled={!selectedGroup}
+              onClick={handleGoToPlots}
             >
-              <SelectTrigger id='program'>
-                <SelectValue placeholder='Select program' />
-              </SelectTrigger>
-              <SelectContent>
-                {programs.map(program => (
-                  <SelectItem key={program.name} value={program.name}>
-                    {program.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              Go to Plots
+            </Button>
           </div>
+        )}
+      </div>
 
-          <div>
-            <Label htmlFor='project'>Select Project</Label>
-            <Select value={selectedProject} onValueChange={setSelectedProject} disabled={!selectedProgram}>
-              <SelectTrigger id='project'>
-                <SelectValue placeholder='Select project' />
-              </SelectTrigger>
-              <SelectContent>
-                {projects.map(project => (
-                  <SelectItem key={project.name} value={project.name}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </form>
-      {selectedGroup && selectedProgram && selectedProject && (
-        <div className='px-8 pb-4'>
-          <Button
-            type='button'
-            className='w-full'
-            style={{
-              background: 'linear-gradient(45deg, rgba(18,76,103,1) 0%, rgba(9,114,121,1) 35%, rgba(0,0,0,1) 100%)',
-            }}
-            onClick={handleGoToPlots}
-          >
-            Go to Plots
-          </Button>
-        </div>
-      )}
-      {loading && <div className='px-8 pb-4'>Loading project description...</div>}
-      {descriptionFiles.length > 0 && (
-        <div className='px-8 pb-8'>
-          <div
-            className='mt-2 flex flex-col items-center'
-            style={{
-              maxWidth: '100%',
-              width: '100%',
-              height: 'calc(100vh - 400px)', // Dynamic height based on viewport minus space for form/header
-              minHeight: '500px', // Minimum height to ensure good visibility
-              maxHeight: '700px', // Maximum height to prevent excessive growth
-              overflow: 'hidden',
-            }}
-          >
+      {/* Always render this container to maintain consistent layout */}
+      <div className='px-8 pb-8 flex-1 min-h-0'>
+        <div
+          className='mt-2 flex flex-col items-center justify-center h-full'
+          style={{
+            maxWidth: '100%',
+            width: '100%',
+            overflow: 'hidden',
+          }}
+        >
+          {loading && <div className='text-center'>Loading project description...</div>}
+
+          {!loading && descriptionFiles.length === 0 && selectedGroup && selectedProgram && selectedProject && (
+            <div className='text-center text-gray-500'>No description files available</div>
+          )}
+
+          {!loading && !selectedGroup && (
+            <div className='text-center text-gray-400'>Select a group, program, and project to view description</div>
+          )}
+
+          {!loading && descriptionFiles.length > 0 && (
             <div
               style={{
                 position: 'relative',
@@ -285,9 +300,9 @@ export default function DataCommonsPage() {
                 </>
               )}
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
