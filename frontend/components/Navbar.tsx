@@ -16,17 +16,21 @@ export default function Navbar() {
           <div className='w-1/2 flex items-center justify-between'>
             <Link href='/' className='flex items-center gap-2'>
               <Image src={logo} alt='TDP logo' className='w-14' />
-              <h1 className='text-lg md:text-4xl font-bold flex items-end flex-wrap'>
+              <h1 className='text-xl md:text-4xl font-semibold flex items-end flex-wrap'>
                 Target Discovery Platform (TDP)
               </h1>
             </Link>
-            <Link href='/docs/CHANGELOG' className='text-xs self-end'>
+            <Link href='/docs/CHANGELOG' className='text-xs self-end font-semibold'>
               Version: {version ?? 'unknown'}
             </Link>
           </div>
           <nav className='hidden md:flex w-1/2 items-center justify-center space-x-4'>
             {links.map(link => (
-              <Link key={link.text} href={link.href} className={buttonVariants({ variant: 'navbar' })}>
+              <Link
+                key={link.text}
+                href={link.href}
+                className={`${buttonVariants({ variant: 'navbar' })} font-semibold text-base`}
+              >
                 {link.text}
               </Link>
             ))}

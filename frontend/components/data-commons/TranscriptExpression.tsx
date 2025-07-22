@@ -9,12 +9,10 @@ import { Label } from '@/components/ui/label';
 
 type GeneRow = {
   [key: string]: string | number;
-  'ENSCGRG-Id': string;
 };
 
-type ContrastRow = {
-  'Sample name': string;
-  Group: string;
+type SampleRow = {
+  [key: string]: string;
 };
 
 type DataSource = 'gene' | 'transcript';
@@ -43,6 +41,18 @@ export default function TranscriptExpression({
   const [dataSource, setDataSource] = useState<DataSource>('gene');
   const [sampleDataExists, setSampleDataExists] = useState(false);
 
+  function getIdColName(row: GeneRow): string {
+    return Object.keys(row)[0];
+  }
+  function getSampleColNames(row: GeneRow): string[] {
+    return Object.keys(row).slice(1);
+  }
+
+  function getSampleSheetColNames(row: SampleRow): [string, string] {
+    const keys = Object.keys(row);
+    return [keys[0], keys[1]];
+  }
+
   useEffect(() => {
     if (!samplesheetUrl) {
       setSampleDataExists(false);
@@ -58,16 +68,23 @@ export default function TranscriptExpression({
         return res.text();
       })
       .then(text => {
-        Papa.parse<ContrastRow>(text, {
+        Papa.parse<SampleRow>(text, {
           header: true,
           skipEmptyLines: true,
           complete: results => {
-            const rows = results.data as ContrastRow[];
+            const rows = results.data as SampleRow[];
+            if (!rows.length) {
+              setSampleDataExists(false);
+              setSampleToGroup({});
+              setGroupToColor({});
+              return;
+            }
+            const [sampleCol, groupCol] = getSampleSheetColNames(rows[0]);
             const sampleGroup: Record<string, string> = {};
             const groupSet = new Set<string>();
             rows.forEach(row => {
-              sampleGroup[row['Sample name']] = row.Group;
-              groupSet.add(row.Group);
+              sampleGroup[row[sampleCol]] = row[groupCol];
+              groupSet.add(row[groupCol]);
             });
             const groupArr = Array.from(groupSet).sort();
             const groupColor: Record<string, string> = {};
@@ -139,7 +156,8 @@ export default function TranscriptExpression({
   useEffect(() => {
     const currentData = dataSource === 'gene' ? geneData : transcriptData;
     if (currentData.length > 0) {
-      const genes = currentData.map(row => row['ENSCGRG-Id']).filter(Boolean);
+      const idCol = getIdColName(currentData[0]);
+      const genes = currentData.map(row => row[idCol] as string).filter(Boolean);
       genes.sort();
       setGeneList(genes);
       setSelectedGenes(new Set());
@@ -154,12 +172,14 @@ export default function TranscriptExpression({
       return;
     }
 
+    const idCol = getIdColName(currentData[0]);
+    const sampleCols = getSampleColNames(currentData[0]);
     const newGeneDataMap: Record<string, { x: string[]; y: number[] }> = {};
 
     selectedGenes.forEach(gene => {
-      const row = currentData.find(row => row['ENSCGRG-Id'] === gene);
+      const row = currentData.find(row => row[idCol] === gene);
       if (row) {
-        const x = Object.keys(row).filter(k => k !== 'ENSCGRG-Id');
+        const x = sampleCols;
         const y = x.map(k => Number(row[k]));
         newGeneDataMap[gene] = { x, y };
       } else {
