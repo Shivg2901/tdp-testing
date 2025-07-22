@@ -29,7 +29,8 @@ export default function DataCommonsPage() {
   const [selectedGroup, setSelectedGroup] = React.useState<string>('');
   const [selectedProgram, setSelectedProgram] = React.useState<string>('');
   const [selectedProject, setSelectedProject] = React.useState<string>('');
-  const [descriptionUrl, setDescriptionUrl] = React.useState<string>('');
+  const [descriptionFiles, setDescriptionFiles] = React.useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = React.useState<number>(0);
   const [loading, setLoading] = React.useState<boolean>(false);
   const router = useRouter();
 
@@ -49,23 +50,39 @@ export default function DataCommonsPage() {
     if (selectedGroup && selectedProgram && selectedProject) {
       setLoading(true);
       fetch(
-        `${API_BASE}/data-commons/project/${encodeURIComponent(selectedGroup)}/${encodeURIComponent(selectedProgram)}/${encodeURIComponent(selectedProject)}/file-status`,
+        `${API_BASE}/data-commons/project/${encodeURIComponent(selectedGroup)}/${encodeURIComponent(selectedProgram)}/${encodeURIComponent(selectedProject)}/description`,
       )
-        .then(res => res.json())
-        .then(status => {
-          if (status['project_description']) {
-            setDescriptionUrl(
-              `${API_BASE}/data-commons/project/${encodeURIComponent(selectedGroup)}/${encodeURIComponent(selectedProgram)}/${encodeURIComponent(selectedProject)}/description`,
-            );
-          } else {
-            setDescriptionUrl('');
-          }
+        .then(res => {
+          if (!res.ok) throw new Error('No description files');
+          return res.json();
         })
+        .then((result: Record<string, string>) => {
+          const files = Object.values(result);
+          setDescriptionFiles(files);
+          setCurrentIndex(0);
+        })
+        .catch(() => setDescriptionFiles([]))
         .finally(() => setLoading(false));
     } else {
-      setDescriptionUrl('');
+      setDescriptionFiles([]);
     }
   }, [selectedGroup, selectedProgram, selectedProject]);
+
+  React.useEffect(() => {
+    if (descriptionFiles.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex(idx => (idx + 1) % descriptionFiles.length);
+    }, 3000); // 3 seconds
+    return () => clearInterval(interval);
+  }, [descriptionFiles]);
+
+  const handlePrev = () => {
+    setCurrentIndex(idx => (idx - 1 + descriptionFiles.length) % descriptionFiles.length);
+  };
+
+  const handleNext = () => {
+    setCurrentIndex(idx => (idx + 1) % descriptionFiles.length);
+  };
 
   const handleGoToPlots = () => {
     if (selectedGroup && selectedProgram && selectedProject) {
@@ -74,6 +91,9 @@ export default function DataCommonsPage() {
       );
     }
   };
+
+  const getImageUrl = (filename: string) =>
+    `${API_BASE}/data-commons/project/${encodeURIComponent(selectedGroup)}/${encodeURIComponent(selectedProgram)}/${encodeURIComponent(selectedProject)}/files/${encodeURIComponent(filename)}`;
 
   return (
     <div className='w-full border rounded-lg shadow-md h-full'>
@@ -167,19 +187,104 @@ export default function DataCommonsPage() {
         </div>
       )}
       {loading && <div className='px-8 pb-4'>Loading project description...</div>}
-      {descriptionUrl && (
+      {descriptionFiles.length > 0 && (
         <div className='px-8 pb-8'>
           <div
-            className='mt-2'
-            style={{ maxWidth: '100%', maxHeight: 400, position: 'relative', width: '100%', height: 400 }}
+            className='mt-2 flex flex-col items-center'
+            style={{
+              maxWidth: '100%',
+              width: '100%',
+              height: 'calc(100vh - 400px)', // Dynamic height based on viewport minus space for form/header
+              minHeight: '500px', // Minimum height to ensure good visibility
+              maxHeight: '700px', // Maximum height to prevent excessive growth
+              overflow: 'hidden',
+            }}
           >
-            <Image
-              src={descriptionUrl || '/placeholder.svg'}
-              alt='Project Description'
-              fill
-              style={{ objectFit: 'contain' }}
-              sizes='(max-width: 800px) 100vw, 800px'
-            />
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+              }}
+            >
+              <Image
+                src={getImageUrl(descriptionFiles[currentIndex]) || '/placeholder.svg'}
+                alt={`Project Description`}
+                fill
+                style={{ objectFit: 'contain' }}
+                sizes='100vw'
+                priority
+              />
+              {descriptionFiles.length > 1 && (
+                <>
+                  <button
+                    aria-label='Previous'
+                    onClick={handlePrev}
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'rgba(0,0,0,0.4)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: 36,
+                      height: 36,
+                      cursor: 'pointer',
+                      zIndex: 2,
+                    }}
+                  >
+                    &#8592;
+                  </button>
+                  <button
+                    aria-label='Next'
+                    onClick={handleNext}
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'rgba(0,0,0,0.4)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: 36,
+                      height: 36,
+                      cursor: 'pointer',
+                      zIndex: 2,
+                    }}
+                  >
+                    &#8594;
+                  </button>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 10,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      display: 'flex',
+                      gap: 8,
+                    }}
+                  >
+                    {descriptionFiles.map((_, idx) => (
+                      <span
+                        key={idx}
+                        style={{
+                          display: 'inline-block',
+                          width: 10,
+                          height: 10,
+                          borderRadius: '50%',
+                          background: idx === currentIndex ? '#1976d2' : '#bbb',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => setCurrentIndex(idx)}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

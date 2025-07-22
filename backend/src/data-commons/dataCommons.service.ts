@@ -91,27 +91,91 @@ export class DataCommonsService {
       '.png',
       '.jpg',
       '.jpeg',
-      '.pdf',
-      '.ppt',
-      '.pptx',
-      '.doc',
-      '.docx',
+      '.gif',
+      '.bmp',
+      '.webp',
     ];
     if (!fs.existsSync(projectPath)) {
       res.status(404).send('Project folder not found');
       return;
     }
     const files = fs.readdirSync(projectPath);
-    const descriptionFile = files.find((f) =>
+    const descriptionFiles = files.filter((f) =>
       allowedExtensions.some((ext) => f.toLowerCase().endsWith(ext)),
     );
-    if (descriptionFile) {
-      const filePath = path.join(projectPath, descriptionFile);
-      res.sendFile(filePath);
+    if (descriptionFiles.length > 0) {
+      const result: Record<string, string> = {};
+      for (const file of descriptionFiles) {
+        result[file] = file;
+      }
+      res.json(result);
     } else {
       res.status(404).send('No description file found');
     }
   }
+
+  // sendProjectFile(
+  //   group: string,
+  //   program: string,
+  //   project: string,
+  //   filename: string,
+  //   res: any,
+  // ) {
+  //   const allowedFiles = [
+  //     'samplesheet.valid.csv',
+  //     'contrastsheet.valid.csv',
+  //     'salmon.merged.gene_counts.tsv',
+  //     'salmon.merged.transcript_counts.tsv',
+  //     'PCA.csv',
+  //     'DifferentialExpression.csv',
+  //   ];
+  //   const projectPath = path.join(DATA_PATH, group, program, project);
+
+  //   if (filename === 'DifferentialExpression') {
+  //     let filesInProject: string[] = [];
+  //     try {
+  //       filesInProject = fs.readdirSync(projectPath);
+  //     } catch (e) {
+  //       res.status(404).send('Project folder not found');
+  //       return;
+  //     }
+  //     const deFiles = filesInProject.filter(
+  //       (f) =>
+  //         f === 'DifferentialExpression.csv' ||
+  //         (f.startsWith('DifferentialExpression-') && f.endsWith('.csv')),
+  //     );
+  //     if (deFiles.length === 0) {
+  //       res.status(404).send('No DifferentialExpression files found');
+  //       return;
+  //     }
+  //     const result: Record<string, string> = {};
+  //     for (const file of deFiles) {
+  //       const filePath = path.join(projectPath, file);
+  //       try {
+  //         result[file] = fs.readFileSync(filePath, 'utf8');
+  //       } catch (e) {
+  //         result[file] = '';
+  //       }
+  //     }
+  //     res.json(result);
+  //     return;
+  //   }
+
+  //   if (
+  //     allowedFiles.includes(filename) ||
+  //     (filename.startsWith('DifferentialExpression-') &&
+  //       filename.endsWith('.csv'))
+  //   ) {
+  //     const filePath = path.join(projectPath, filename);
+  //     if (fs.existsSync(filePath)) {
+  //       res.sendFile(filePath);
+  //     } else {
+  //       res.status(404).send(`${filename} not found`);
+  //     }
+  //   } else {
+  //     res.status(403).send('File not allowed');
+  //   }
+  // }
 
   sendProjectFile(
     group: string,
@@ -128,42 +192,19 @@ export class DataCommonsService {
       'PCA.csv',
       'DifferentialExpression.csv',
     ];
+    const allowedExtensions = [
+      '.png',
+      '.jpg',
+      '.jpeg',
+      '.gif',
+      '.bmp',
+      '.webp',
+    ];
     const projectPath = path.join(DATA_PATH, group, program, project);
-
-    if (filename === 'DifferentialExpression') {
-      let filesInProject: string[] = [];
-      try {
-        filesInProject = fs.readdirSync(projectPath);
-      } catch (e) {
-        res.status(404).send('Project folder not found');
-        return;
-      }
-      const deFiles = filesInProject.filter(
-        (f) =>
-          f === 'DifferentialExpression.csv' ||
-          (f.startsWith('DifferentialExpression-') && f.endsWith('.csv')),
-      );
-      if (deFiles.length === 0) {
-        res.status(404).send('No DifferentialExpression files found');
-        return;
-      }
-      const result: Record<string, string> = {};
-      for (const file of deFiles) {
-        const filePath = path.join(projectPath, file);
-        try {
-          result[file] = fs.readFileSync(filePath, 'utf8');
-        } catch (e) {
-          result[file] = '';
-        }
-      }
-      res.json(result);
-      return;
-    }
 
     if (
       allowedFiles.includes(filename) ||
-      (filename.startsWith('DifferentialExpression-') &&
-        filename.endsWith('.csv'))
+      allowedExtensions.some((ext) => filename.toLowerCase().endsWith(ext))
     ) {
       const filePath = path.join(projectPath, filename);
       if (fs.existsSync(filePath)) {
