@@ -216,34 +216,40 @@ export default function PCA({ samplesheetUrl, pcaUrl }: PCAProps) {
 
   return (
     <div className='w-full px-4 sm:px-6 lg:px-8 max-w-[95vw] lg:max-w-[1400px] mx-auto'>
-      <h2 className='text-xl sm:text-2xl font-semibold mb-6 text-center'>PCA Plot (PC1 vs PC2)</h2>
-
-      <div className='min-h-[40px] flex items-center justify-center mb-6'>{renderGroupLegend()}</div>
-
-      <div className='relative w-full min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-[750px] xl:min-h-[850px] 2xl:min-h-[950px]'>
-        <Plot
-          data={traces}
-          layout={{
-            title: { text: 'PCA Plot', font: { size: 18 } },
-            xaxis: {
-              title: { text: 'PC1' },
-              automargin: true,
-              tickangle: 0,
-              tickfont: { size: 12 },
-            },
-            yaxis: {
-              title: { text: 'PC2' },
-              tickfont: { size: 12 },
-            },
-            margin: { t: 60, l: 60, r: 40, b: 80 },
-            autosize: true,
-            showlegend: false,
-          }}
-          useResizeHandler
-          style={{ width: '100%', height: '100%' }}
-          config={{ responsive: true, displayModeBar: false }}
-        />
-      </div>
+      {!pcaUrl ? (
+        <div className='min-h-[60vh] flex items-center justify-center'>
+          <div className='text-center text-gray-500 text-lg font-medium'>Kindly add PCA file to view the plot.</div>
+        </div>
+      ) : (
+        <>
+          <h2 className='text-xl sm:text-2xl font-semibold mb-6 text-center'>PCA Plot (PC1 vs PC2)</h2>
+          <div className='min-h-[40px] flex items-center justify-center mb-6'>{renderGroupLegend()}</div>
+          <div className='relative w-full min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-[750px] xl:min-h-[850px] 2xl:min-h-[950px]'>
+            <Plot
+              data={traces}
+              layout={{
+                title: { text: 'PCA Plot', font: { size: 18 } },
+                xaxis: {
+                  title: { text: 'PC1' },
+                  automargin: true,
+                  tickangle: 0,
+                  tickfont: { size: 12 },
+                },
+                yaxis: {
+                  title: { text: 'PC2' },
+                  tickfont: { size: 12 },
+                },
+                margin: { t: 60, l: 60, r: 40, b: 80 },
+                autosize: true,
+                showlegend: false,
+              }}
+              useResizeHandler
+              style={{ width: '100%', height: '100%' }}
+              config={{ responsive: true, displayModeBar: false }}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -43,7 +43,6 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
   const [yThreshold, setYThreshold] = useState<number>(0.01);
   const [yThresholdInput, setYThresholdInput] = useState<string>('0.01');
 
-  // Load available contrasts from deFiles
   useEffect(() => {
     if (!deFiles || Object.keys(deFiles).length === 0) {
       setAvailableContrasts([]);
@@ -62,13 +61,11 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
     setLoading(false);
   }, [deFiles]);
 
-  // Debounce contrast selection
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedContrasts(selectedContrasts), 150);
     return () => clearTimeout(timer);
   }, [selectedContrasts]);
 
-  // Load contrast data from CSV
   useEffect(() => {
     if (!deFiles) return;
     const toFetch = debouncedContrasts.filter(c => !contrastData[c]);
@@ -119,7 +116,6 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
 
   const allDataLoaded = debouncedContrasts.every(c => contrastData[c] && contrastData[c].length > 0);
 
-  // Calculate plot bounds
   const calculateBounds = (points: Point[]): Bounds => {
     if (points.length === 0) return { xMin: -1, xMax: 1, yMin: 0, yMax: 5 };
     const xVals = points.map(p => p.x);
@@ -134,7 +130,6 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
     };
   };
 
-  // Process data for plotting
   const processedData = useMemo<Record<string, ProcessedData>>(() => {
     const result: Record<string, ProcessedData> = {};
     debouncedContrasts.forEach(contrast => {
@@ -154,7 +149,6 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
     return result;
   }, [contrastData, debouncedContrasts, cutoff, yThreshold]);
 
-  // Create threshold lines
   const createShapes = (bounds: Bounds): Partial<Shape>[] => [
     {
       type: 'line',
@@ -188,7 +182,6 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
     },
   ];
 
-  // Handle plot relayout (threshold dragging)
   const handlePlotRelayout = (eventData: Record<string, unknown> | undefined) => {
     if (!eventData) return;
     Object.keys(eventData).forEach(key => {
@@ -218,7 +211,6 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
     });
   };
 
-  // Handle contrast selection (max 4)
   const handleContrastChange = (values: string[]) => {
     if (values.length <= 4) setSelectedContrasts(values);
   };
@@ -230,7 +222,6 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
       value: contrast,
     }));
 
-  // Render volcano plot for a contrast
   const renderPlot = (contrast: string) => {
     const data = processedData[contrast];
     if (!data || data.points.length === 0) return null;
@@ -288,6 +279,18 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
   };
 
   const showDropdown = availableContrasts.length > 1;
+
+  if (!deFiles || Object.keys(deFiles).length === 0) {
+    return (
+      <div className='w-full px-4 sm:px-6 lg:px-8 max-w-[95vw] lg:max-w-[1500px] mx-auto'>
+        <div className='min-h-[60vh] flex flex-col items-center justify-center'>
+          <p className='text-gray-500 text-lg font-medium'>
+            Kindly add Differential Expression files to view the plots.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading || !allDataLoaded) {
     return (

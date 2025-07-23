@@ -114,69 +114,6 @@ export class DataCommonsService {
     }
   }
 
-  // sendProjectFile(
-  //   group: string,
-  //   program: string,
-  //   project: string,
-  //   filename: string,
-  //   res: any,
-  // ) {
-  //   const allowedFiles = [
-  //     'samplesheet.valid.csv',
-  //     'contrastsheet.valid.csv',
-  //     'salmon.merged.gene_counts.tsv',
-  //     'salmon.merged.transcript_counts.tsv',
-  //     'PCA.csv',
-  //     'DifferentialExpression.csv',
-  //   ];
-  //   const projectPath = path.join(DATA_PATH, group, program, project);
-
-  //   if (filename === 'DifferentialExpression') {
-  //     let filesInProject: string[] = [];
-  //     try {
-  //       filesInProject = fs.readdirSync(projectPath);
-  //     } catch (e) {
-  //       res.status(404).send('Project folder not found');
-  //       return;
-  //     }
-  //     const deFiles = filesInProject.filter(
-  //       (f) =>
-  //         f === 'DifferentialExpression.csv' ||
-  //         (f.startsWith('DifferentialExpression-') && f.endsWith('.csv')),
-  //     );
-  //     if (deFiles.length === 0) {
-  //       res.status(404).send('No DifferentialExpression files found');
-  //       return;
-  //     }
-  //     const result: Record<string, string> = {};
-  //     for (const file of deFiles) {
-  //       const filePath = path.join(projectPath, file);
-  //       try {
-  //         result[file] = fs.readFileSync(filePath, 'utf8');
-  //       } catch (e) {
-  //         result[file] = '';
-  //       }
-  //     }
-  //     res.json(result);
-  //     return;
-  //   }
-
-  //   if (
-  //     allowedFiles.includes(filename) ||
-  //     (filename.startsWith('DifferentialExpression-') &&
-  //       filename.endsWith('.csv'))
-  //   ) {
-  //     const filePath = path.join(projectPath, filename);
-  //     if (fs.existsSync(filePath)) {
-  //       res.sendFile(filePath);
-  //     } else {
-  //       res.status(404).send(`${filename} not found`);
-  //     }
-  //   } else {
-  //     res.status(403).send('File not allowed');
-  //   }
-  // }
-
   sendProjectFile(
     group: string,
     program: string,
@@ -202,9 +139,43 @@ export class DataCommonsService {
     ];
     const projectPath = path.join(DATA_PATH, group, program, project);
 
+    // Handle DifferentialExpression special case (returns JSON with multiple files)
+    if (filename === 'DifferentialExpression') {
+      let filesInProject: string[] = [];
+      try {
+        filesInProject = fs.readdirSync(projectPath);
+      } catch (e) {
+        res.status(404).send('Project folder not found');
+        return;
+      }
+      const deFiles = filesInProject.filter(
+        (f) =>
+          f === 'DifferentialExpression.csv' ||
+          (f.startsWith('DifferentialExpression-') && f.endsWith('.csv')),
+      );
+      if (deFiles.length === 0) {
+        res.status(404).send('No DifferentialExpression files found');
+        return;
+      }
+      const result: Record<string, string> = {};
+      for (const file of deFiles) {
+        const filePath = path.join(projectPath, file);
+        try {
+          result[file] = fs.readFileSync(filePath, 'utf8');
+        } catch (e) {
+          result[file] = '';
+        }
+      }
+      res.json(result);
+      return;
+    }
+
+    // Handle regular files (CSV/TSV) and images
     if (
       allowedFiles.includes(filename) ||
-      allowedExtensions.some((ext) => filename.toLowerCase().endsWith(ext))
+      allowedExtensions.some((ext) => filename.toLowerCase().endsWith(ext)) ||
+      (filename.startsWith('DifferentialExpression-') &&
+        filename.endsWith('.csv'))
     ) {
       const filePath = path.join(projectPath, filename);
       if (fs.existsSync(filePath)) {

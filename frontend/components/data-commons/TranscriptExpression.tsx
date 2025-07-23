@@ -242,230 +242,247 @@ export default function TranscriptExpression({
     }
   };
 
-  const handleDataSourceToggle = (checked: boolean) => {
-    setDataSource(checked ? 'transcript' : 'gene');
-  };
+  const hasGene = !!geneCountsUrl;
+  const hasTranscript = !!transcriptCountsUrl;
+
+  useEffect(() => {
+    if (hasGene && !hasTranscript) setDataSource('gene');
+    else if (!hasGene && hasTranscript) setDataSource('transcript');
+    else if (hasGene && hasTranscript && !['gene', 'transcript'].includes(dataSource)) setDataSource('gene');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasGene, hasTranscript]);
 
   const isLoading = loading;
 
   return (
     <div className='w-full px-4 sm:px-6 lg:px-8 max-w-[95vw] lg:max-w-[1500px] mx-auto'>
-      <div className='mb-8 min-h-[120px]'>
-        <div className='max-w-4xl mx-auto mb-6'>
-          <div className='flex items-center gap-6'>
-            <div className='flex items-center gap-3 min-w-fit'>
-              <Label htmlFor='data-source-toggle' className='text-sm font-medium whitespace-nowrap'>
-                Gene Data
-              </Label>
-              <Switch
-                id='data-source-toggle'
-                checked={dataSource === 'transcript'}
-                onCheckedChange={handleDataSourceToggle}
-                disabled={isLoading}
-              />
-              <Label htmlFor='data-source-toggle' className='text-sm font-medium whitespace-nowrap'>
-                Transcript Data
-              </Label>
-            </div>
-
-            <div className='flex-1 flex flex-col justify-center'>
-              <label className='block text-sm font-semibold text-gray-700'>
-                Select {dataSource === 'gene' ? 'Genes' : 'Transcripts'} (up to 4)
-              </label>
-              <VirtualizedCombobox
-                data={geneList}
-                value={selectedGenes}
-                onChange={handleGeneSelection}
-                placeholder={`Search and select ${dataSource === 'gene' ? 'genes' : 'transcripts'}...`}
-                loading={isLoading}
-                className='w-full'
-                multiselect={true}
-                showSelectAll={true}
-              />
-              {selectedGenes.size > 0 && (
-                <p className='text-xs text-gray-500 mt-1'>
-                  {selectedGenes.size} {dataSource === 'gene' ? 'gene' : 'transcript'}
-                  {selectedGenes.size !== 1 ? 's' : ''} selected
-                  {selectedGenes.size >= 4 && ' (maximum reached)'}
-                </p>
-              )}
-              {selectedGenes.size === 0 && <p className='text-xs text-transparent mt-1'>placeholder</p>}
-            </div>
+      {!hasGene && !hasTranscript ? (
+        <div className='min-h-[60vh] flex items-center justify-center'>
+          <div className='text-center text-gray-500 text-lg font-medium'>
+            Kindly add CPM/TPM metric files to view plots.
           </div>
         </div>
-
-        <div className='min-h-[40px] flex items-center justify-center'>{renderGroupLegend()}</div>
-      </div>
-
-      <div className='min-h-[60vh]'>
-        {selectedGenesArray.length > 0 && (
-          <div className='w-full overflow-x-auto overflow-y-auto max-h-[90vh]'>
-            {selectedGenesArray.length === 1 ? (
-              <div className='w-full min-h-[60vh] md:min-h-[65vh] xl:min-h-[70vh]'>
-                <Plot
-                  data={[
-                    {
-                      x: geneDataMap[selectedGenesArray[0]]?.x || [],
-                      y: geneDataMap[selectedGenesArray[0]]?.y || [],
-                      type: 'bar',
-                      marker: {
-                        color: getBarColors(geneDataMap[selectedGenesArray[0]]?.x || []),
-                      },
-                    },
-                  ]}
-                  layout={{
-                    title: {
-                      text: `${dataSource === 'gene' ? 'Gene' : 'Transcript'} Expression - ${selectedGenesArray[0]}`,
-                      font: { size: 18 },
-                    },
-                    xaxis: {
-                      tickangle: 45,
-                      automargin: true,
-                      tickfont: { size: 12 },
-                    },
-                    yaxis: {
-                      title: { text: 'Total read count (millions)', font: { size: 14 } },
-                      tickfont: { size: 12 },
-                    },
-                    margin: {
-                      t: 60,
-                      l: 80,
-                      r: 40,
-                      b: calculateBottomMargin(geneDataMap[selectedGenesArray[0]]?.x || []) + 40,
-                    },
-                    autosize: true,
-                    showlegend: false,
-                  }}
-                  useResizeHandler
-                  style={{ width: '100%', height: '100%' }}
-                  config={{ responsive: true, displayModeBar: false }}
-                />
-              </div>
-            ) : selectedGenesArray.length >= 3 ? (
-              <div className='space-y-2'>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                  {selectedGenesArray.map(gene => {
-                    const labels = geneDataMap[gene]?.x || [];
-                    const bottomMargin = calculateBottomMargin(labels);
-
-                    return (
-                      <div key={gene} className='w-full h-[280px]'>
-                        <Plot
-                          data={[
-                            {
-                              x: geneDataMap[gene]?.x || [],
-                              y: geneDataMap[gene]?.y || [],
-                              type: 'bar',
-                              marker: {
-                                color: getBarColors(geneDataMap[gene]?.x || []),
-                              },
-                            },
-                          ]}
-                          layout={{
-                            title: {
-                              text: gene,
-                              font: { size: 13 },
-                            },
-                            xaxis: {
-                              tickangle: 45,
-                              automargin: true,
-                              tickfont: { size: 9 },
-                            },
-                            yaxis: {
-                              title: {
-                                text: 'Total read count (millions)',
-                                font: { size: 10 },
-                              },
-                              tickfont: { size: 9 },
-                            },
-                            margin: {
-                              t: 30,
-                              l: 45,
-                              r: 20,
-                              b: bottomMargin,
-                            },
-                            autosize: true,
-                            showlegend: false,
-                          }}
-                          useResizeHandler
-                          style={{ width: '100%', height: '100%' }}
-                          config={{ responsive: true, displayModeBar: false }}
-                        />
-                      </div>
-                    );
-                  })}
-                  <div className='invisible w-full min-h-[320px]'></div>
+      ) : (
+        <>
+          <div className='mb-8 min-h-[120px]'>
+            <div className='max-w-4xl mx-auto mb-6'>
+              <div className='flex items-center gap-6'>
+                {hasGene && hasTranscript && (
+                  <div className='flex items-center gap-3 min-w-fit'>
+                    <Label htmlFor='data-source-toggle' className='text-sm font-medium whitespace-nowrap'>
+                      Gene Data
+                    </Label>
+                    <Switch
+                      id='data-source-toggle'
+                      checked={dataSource === 'transcript'}
+                      onCheckedChange={checked => setDataSource(checked ? 'transcript' : 'gene')}
+                      disabled={isLoading}
+                    />
+                    <Label htmlFor='data-source-toggle' className='text-sm font-medium whitespace-nowrap'>
+                      Transcript Data
+                    </Label>
+                  </div>
+                )}
+                <div className='flex-1 flex flex-col justify-center'>
+                  <label className='block text-sm font-semibold text-gray-700'>
+                    Select {dataSource === 'gene' ? 'Genes' : 'Transcripts'} (up to 4)
+                  </label>
+                  <VirtualizedCombobox
+                    data={geneList}
+                    value={selectedGenes}
+                    onChange={handleGeneSelection}
+                    placeholder={`Search and select ${dataSource === 'gene' ? 'genes' : 'transcripts'}...`}
+                    loading={isLoading}
+                    className='w-full'
+                    multiselect={true}
+                    showSelectAll={true}
+                  />
+                  {selectedGenes.size > 0 && (
+                    <p className='text-xs text-gray-500 mt-1'>
+                      {selectedGenes.size} {dataSource === 'gene' ? 'gene' : 'transcript'}
+                      {selectedGenes.size !== 1 ? 's' : ''} selected
+                      {selectedGenes.size >= 4 && ' (maximum reached)'}
+                    </p>
+                  )}
+                  {selectedGenes.size === 0 && <p className='text-xs text-transparent mt-1'>placeholder</p>}
                 </div>
               </div>
-            ) : (
-              <div className='space-y-2'>
-                <div className='grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-2'>
-                  {selectedGenesArray.slice(0, 4).map(gene => {
-                    const labels = geneDataMap[gene]?.x || [];
-                    const bottomMargin = calculateBottomMargin(labels);
+            </div>
 
-                    return (
-                      <div key={gene} className='w-full min-h-[400px] md:min-h-[450px] xl:min-h-[500px]'>
-                        <Plot
-                          data={[
-                            {
-                              x: geneDataMap[gene]?.x || [],
-                              y: geneDataMap[gene]?.y || [],
-                              type: 'bar',
-                              marker: {
-                                color: getBarColors(geneDataMap[gene]?.x || []),
-                              },
-                            },
-                          ]}
-                          layout={{
-                            title: {
-                              text: gene,
-                              font: { size: 13 },
-                            },
-                            xaxis: {
-                              tickangle: 45,
-                              automargin: true,
-                              tickfont: { size: 9 },
-                            },
-                            yaxis: {
-                              title: {
-                                text: 'Total read count (millions)',
-                                font: { size: 10 },
-                              },
-                              tickfont: { size: 9 },
-                            },
-                            margin: {
-                              t: 30,
-                              l: 45,
-                              r: 20,
-                              b: bottomMargin,
-                            },
-                            autosize: true,
-                            showlegend: false,
-                          }}
-                          useResizeHandler
-                          style={{ width: '100%', height: '100%' }}
-                          config={{ responsive: true, displayModeBar: false }}
-                        />
-                      </div>
-                    );
-                  })}
+            <div className='min-h-[40px] flex items-center justify-center'>{renderGroupLegend()}</div>
+          </div>
+
+          <div className='min-h-[60vh]'>
+            {selectedGenesArray.length > 0 && (
+              <div className='w-full overflow-x-auto overflow-y-auto max-h-[90vh]'>
+                {selectedGenesArray.length === 1 ? (
+                  <div className='w-full min-h-[60vh] md:min-h-[65vh] xl:min-h-[70vh]'>
+                    <Plot
+                      data={[
+                        {
+                          x: geneDataMap[selectedGenesArray[0]]?.x || [],
+                          y: geneDataMap[selectedGenesArray[0]]?.y || [],
+                          type: 'bar',
+                          marker: {
+                            color: getBarColors(geneDataMap[selectedGenesArray[0]]?.x || []),
+                          },
+                        },
+                      ]}
+                      layout={{
+                        title: {
+                          text: `${dataSource === 'gene' ? 'Gene' : 'Transcript'} Expression - ${selectedGenesArray[0]}`,
+                          font: { size: 18 },
+                        },
+                        xaxis: {
+                          tickangle: 45,
+                          automargin: true,
+                          tickfont: { size: 12 },
+                        },
+                        yaxis: {
+                          title: { text: 'Total read count (millions)', font: { size: 14 } },
+                          tickfont: { size: 12 },
+                        },
+                        margin: {
+                          t: 60,
+                          l: 80,
+                          r: 40,
+                          b: calculateBottomMargin(geneDataMap[selectedGenesArray[0]]?.x || []) + 40,
+                        },
+                        autosize: true,
+                        showlegend: false,
+                      }}
+                      useResizeHandler
+                      style={{ width: '100%', height: '100%' }}
+                      config={{ responsive: true, displayModeBar: false }}
+                    />
+                  </div>
+                ) : selectedGenesArray.length >= 3 ? (
+                  <div className='space-y-2'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                      {selectedGenesArray.map(gene => {
+                        const labels = geneDataMap[gene]?.x || [];
+                        const bottomMargin = calculateBottomMargin(labels);
+
+                        return (
+                          <div key={gene} className='w-full h-[280px]'>
+                            <Plot
+                              data={[
+                                {
+                                  x: geneDataMap[gene]?.x || [],
+                                  y: geneDataMap[gene]?.y || [],
+                                  type: 'bar',
+                                  marker: {
+                                    color: getBarColors(geneDataMap[gene]?.x || []),
+                                  },
+                                },
+                              ]}
+                              layout={{
+                                title: {
+                                  text: gene,
+                                  font: { size: 13 },
+                                },
+                                xaxis: {
+                                  tickangle: 45,
+                                  automargin: true,
+                                  tickfont: { size: 9 },
+                                },
+                                yaxis: {
+                                  title: {
+                                    text: 'Total read count (millions)',
+                                    font: { size: 10 },
+                                  },
+                                  tickfont: { size: 9 },
+                                },
+                                margin: {
+                                  t: 30,
+                                  l: 45,
+                                  r: 20,
+                                  b: bottomMargin,
+                                },
+                                autosize: true,
+                                showlegend: false,
+                              }}
+                              useResizeHandler
+                              style={{ width: '100%', height: '100%' }}
+                              config={{ responsive: true, displayModeBar: false }}
+                            />
+                          </div>
+                        );
+                      })}
+                      <div className='invisible w-full min-h-[320px]'></div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className='space-y-2'>
+                    <div className='grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-2'>
+                      {selectedGenesArray.slice(0, 4).map(gene => {
+                        const labels = geneDataMap[gene]?.x || [];
+                        const bottomMargin = calculateBottomMargin(labels);
+
+                        return (
+                          <div key={gene} className='w-full min-h-[400px] md:min-h-[450px] xl:min-h-[500px]'>
+                            <Plot
+                              data={[
+                                {
+                                  x: geneDataMap[gene]?.x || [],
+                                  y: geneDataMap[gene]?.y || [],
+                                  type: 'bar',
+                                  marker: {
+                                    color: getBarColors(geneDataMap[gene]?.x || []),
+                                  },
+                                },
+                              ]}
+                              layout={{
+                                title: {
+                                  text: gene,
+                                  font: { size: 13 },
+                                },
+                                xaxis: {
+                                  tickangle: 45,
+                                  automargin: true,
+                                  tickfont: { size: 9 },
+                                },
+                                yaxis: {
+                                  title: {
+                                    text: 'Total read count (millions)',
+                                    font: { size: 10 },
+                                  },
+                                  tickfont: { size: 9 },
+                                },
+                                margin: {
+                                  t: 30,
+                                  l: 45,
+                                  r: 20,
+                                  b: bottomMargin,
+                                },
+                                autosize: true,
+                                showlegend: false,
+                              }}
+                              useResizeHandler
+                              style={{ width: '100%', height: '100%' }}
+                              config={{ responsive: true, displayModeBar: false }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {selectedGenesArray.length === 0 && !isLoading && (
+              <div className='text-center py-12 min-h-[60vh] flex items-center justify-center'>
+                <div>
+                  <p className='text-gray-500 text-lg mb-4'>
+                    Select {dataSource === 'gene' ? 'genes' : 'transcripts'} to view their expression data
+                  </p>
                 </div>
               </div>
             )}
           </div>
-        )}
-
-        {selectedGenesArray.length === 0 && !isLoading && (
-          <div className='text-center py-12 min-h-[60vh] flex items-center justify-center'>
-            <div>
-              <p className='text-gray-500 text-lg mb-4'>
-                Select {dataSource === 'gene' ? 'genes' : 'transcripts'} to view their expression data
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
