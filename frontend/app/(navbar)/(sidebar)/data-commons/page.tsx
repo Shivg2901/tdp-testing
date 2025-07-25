@@ -204,12 +204,21 @@ export default function DataCommonsPage() {
         >
           {loading && <div className='text-center'>Loading project description...</div>}
 
-          {!loading && descriptionFiles.length === 0 && selectedGroup && selectedProgram && selectedProject && (
-            <div className='text-center text-gray-500'>No description files available</div>
-          )}
-
-          {!loading && !selectedGroup && (
-            <div className='text-center text-gray-400'>Select a group, program, and project to view description</div>
+          {!loading && (
+            <>
+              {(!selectedGroup || descriptionFiles.length === 0) && (
+                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  <Image
+                    src='/image/alxn-data-commons.jpeg'
+                    alt='Default Data Commons'
+                    fill
+                    style={{ objectFit: 'contain' }}
+                    sizes='100vw'
+                    priority
+                  />
+                </div>
+              )}
+            </>
           )}
 
           {!loading && descriptionFiles.length > 0 && (
@@ -221,8 +230,12 @@ export default function DataCommonsPage() {
               }}
             >
               <Image
-                src={getImageUrl(descriptionFiles[currentIndex]) || '/placeholder.svg'}
-                alt={`Project Description`}
+                src={
+                  descriptionFiles.length > 0
+                    ? getImageUrl(descriptionFiles[currentIndex])
+                    : '/image/alxn-data-commons.jpeg'
+                }
+                alt='Project Description'
                 fill
                 style={{ objectFit: 'contain' }}
                 sizes='100vw'
