@@ -139,7 +139,6 @@ export class DataCommonsService {
     ];
     const projectPath = path.join(DATA_PATH, group, program, project);
 
-    // Handle DifferentialExpression special case (returns JSON with multiple files)
     if (filename === 'DifferentialExpression') {
       let filesInProject: string[] = [];
       try {
@@ -170,7 +169,6 @@ export class DataCommonsService {
       return;
     }
 
-    // Handle regular files (CSV/TSV) and images
     if (
       allowedFiles.includes(filename) ||
       allowedExtensions.some((ext) => filename.toLowerCase().endsWith(ext)) ||
@@ -186,5 +184,91 @@ export class DataCommonsService {
     } else {
       res.status(403).send('File not allowed');
     }
+  }
+
+  sendProjectFileByKey(
+    group: string,
+    program: string,
+    project: string,
+    fileKey: string,
+    res: any,
+  ) {
+    const allowedKeys = [
+      'samplesheet',
+      'gene',
+      'transcript',
+      'pca',
+      'differentialexpression',
+    ];
+
+    const allowedKeysDetailed: Record<string, string[] | string> = {
+      samplesheet: ['samplesheet', 'samples'],
+      gene: ['gene'],
+      transcript: ['transcript'],
+      pca: ['pca'],
+      differentialexpression: ['differentialexpression'],
+    };
+
+    const allowedExtensions = [
+      '.png',
+      '.jpg',
+      '.jpeg',
+      '.gif',
+      '.bmp',
+      '.webp',
+    ];
+    const lowerCaseFileKey = fileKey.toLowerCase();
+    const projectPath = path.join(DATA_PATH, group, program, project);
+
+    if (allowedExtensions.some((ext) => lowerCaseFileKey.endsWith(ext))) {
+      const filePath = path.join(projectPath, fileKey);
+      if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+      } else {
+        res.status(404).send(`${fileKey} not found`);
+      }
+      return;
+    }
+
+    if (!allowedKeys.includes(lowerCaseFileKey)) {
+      res.status(403).send({
+        allowedKeys: allowedKeys,
+        message: 'File key not allowed',
+        fileKey: lowerCaseFileKey,
+      });
+      return;
+    }
+
+    let matchTerms = allowedKeysDetailed[lowerCaseFileKey];
+    if (!matchTerms) {
+      res.status(403).send('No match terms found for this key');
+      return;
+    }
+
+    if (typeof matchTerms === 'string') {
+      matchTerms = [matchTerms];
+    }
+
+    let filesInProject: string[] = [];
+    try {
+      filesInProject = fs.readdirSync(projectPath);
+    } catch (e) {
+      res.status(404).send('Project folder not found');
+      return;
+    }
+
+    const matchingFiles = filesInProject.filter((f) => {
+      const lowerF = f.toLowerCase();
+      return matchTerms.some((term) => lowerF.includes(term.toLowerCase()));
+    });
+
+    const result = {
+      label: fileKey,
+      selectedFile: matchingFiles.length > 0 ? matchingFiles[0] : '',
+      filesHavingSameKey: matchingFiles,
+      allFiles: filesInProject,
+    };
+
+    res.json(result);
   }
 }

@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import FileSelectionPopup from '@/components/data-commons/PopUp';
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -32,7 +32,7 @@ export default function DataCommonsPage() {
   const [descriptionFiles, setDescriptionFiles] = React.useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = React.useState<number>(0);
   const [loading, setLoading] = React.useState<boolean>(false);
-  const router = useRouter();
+  const [showFileSelectionPopup, setShowFileSelectionPopup] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     fetch(`${API_BASE}/data-commons/structure`)
@@ -72,7 +72,7 @@ export default function DataCommonsPage() {
     if (descriptionFiles.length <= 1) return;
     const interval = setInterval(() => {
       setCurrentIndex(idx => (idx + 1) % descriptionFiles.length);
-    }, 3000); // 3 seconds
+    }, 3000);
     return () => clearInterval(interval);
   }, [descriptionFiles]);
 
@@ -86,9 +86,7 @@ export default function DataCommonsPage() {
 
   const handleGoToPlots = () => {
     if (selectedGroup && selectedProgram && selectedProject) {
-      router.push(
-        `/data?group=${encodeURIComponent(selectedGroup)}&program=${encodeURIComponent(selectedProgram)}&project=${encodeURIComponent(selectedProject)}`,
-      );
+      setShowFileSelectionPopup(true);
     }
   };
 
@@ -303,6 +301,13 @@ export default function DataCommonsPage() {
           )}
         </div>
       </div>
+      <FileSelectionPopup
+        isOpen={showFileSelectionPopup}
+        onClose={() => setShowFileSelectionPopup(false)}
+        selectedGroup={selectedGroup}
+        selectedProgram={selectedProgram}
+        selectedProject={selectedProject}
+      />
     </div>
   );
 }

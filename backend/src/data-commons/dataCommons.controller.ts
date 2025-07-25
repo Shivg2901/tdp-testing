@@ -40,4 +40,21 @@ export class DataCommonsController {
   ) {
     return this.service.sendProjectFile(group, program, project, filename, res);
   }
+
+  @Get('project/:group/:program/:project/files/keys/:fileKey')
+  async getProjectFileByKey(
+    @Param('group') group: string,
+    @Param('program') program: string,
+    @Param('project') project: string,
+    @Param('fileKey') fileKey: string,
+    @Res() res: Response,
+  ) {
+    return this.service.sendProjectFileByKey(
+      group,
+      program,
+      project,
+      fileKey,
+      res,
+    );
+  }
 }
