@@ -151,26 +151,43 @@ export default function FileSelectionPopup({
   const renderRow = (label: string, type: keyof FileOptions) => {
     if (type === 'differentialexpression') {
       return (
-        <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-          <Label className='w-full sm:w-32 text-left sm:text-right text-sm font-medium'>{label}</Label>
-          <div className='flex flex-col w-full'>
-            <span className='text-sm text-muted-foreground'>
-              Selected:{' '}
-              <strong>
-                {selections.differentialexpression.length > 0
-                  ? `${selections.differentialexpression.length} files`
-                  : 'None'}
-              </strong>
-            </span>
-            <MultiSelect
-              options={orderFiles(fileOptions.differentialexpression, 'differentialexpression').map(file => ({
-                label: file,
-                value: file,
-              }))}
-              selectedValues={selections.differentialexpression}
-              onChange={v => handleChange('differentialexpression', v)}
-              placeholder='Select Differential Expression files'
-            />
+        <div className='grid grid-cols-1 md:grid-cols-4 gap-4 items-start'>
+          <div className='md:col-span-1 flex items-center justify-center min-h-[60px]'>
+            <Label className='text-base font-semibold'>{label}</Label>
+          </div>
+          <div className='md:col-span-3 flex flex-col gap-3'>
+            <div className='flex flex-col gap-2'>
+              <span className='text-sm text-muted-foreground'>
+                Selected:{' '}
+                <strong>
+                  {selections.differentialexpression.length > 0
+                    ? `${selections.differentialexpression.length} files`
+                    : 'None'}
+                </strong>
+              </span>
+              {/* Show selected files in a single scrollable container */}
+              {selections.differentialexpression.length > 0 && (
+                <div className='max-h-32 overflow-y-auto bg-muted/50 rounded-md p-3 border'>
+                  <div className='space-y-2'>
+                    {selections.differentialexpression.map((file, index) => (
+                      <div key={index} className='text-sm break-words' title={file}>
+                        {index + 1}. {truncateFilename(file, 60)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <MultiSelect
+                options={orderFiles(fileOptions.differentialexpression, 'differentialexpression').map(file => ({
+                  label: truncateFilename(file, 40),
+                  value: file,
+                }))}
+                selectedValues={selections.differentialexpression}
+                onChange={v => handleChange('differentialexpression', v)}
+                placeholder='Select Differential Expression files'
+                className='w-full'
+              />
+            </div>
           </div>
         </div>
       );
@@ -181,34 +198,38 @@ export default function FileSelectionPopup({
     const remainingFiles = allFiles.filter(f => f !== selectedFile);
 
     return (
-      <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-        <Label className='w-full sm:w-32 text-left sm:text-right text-sm font-medium'>{label}</Label>
-        <div className='flex flex-col w-full'>
+      <div className='grid grid-cols-1 md:grid-cols-4 gap-4 items-start'>
+        <div className='md:col-span-1 flex items-center justify-center min-h-[60px]'>
+          <Label className='text-base font-semibold'>{label}</Label>
+        </div>
+        <div className='md:col-span-3 flex flex-col gap-2'>
           <span className='text-sm text-muted-foreground'>
             Selected:{' '}
-            <strong className='truncate block' title={selectedFile}>
-              {selectedFile ? truncateFilename(selectedFile) : 'None'}
+            <strong className='block truncate max-w-full' title={selectedFile}>
+              {selectedFile ? truncateFilename(selectedFile, 60) : 'None'}
             </strong>
           </span>
           <Select value={selectedFile} onValueChange={v => handleChange(type, v)} disabled={allFiles.length === 0}>
             <SelectTrigger className='w-full'>
               <SelectValue placeholder={`Select ${type} file`} />
             </SelectTrigger>
-            <SelectContent side='bottom' align='start'>
+            <SelectContent side='bottom' align='start' className='max-w-[400px]'>
               {allFiles.length === 0 ? (
                 <div className='px-4 py-2 text-sm text-muted-foreground'>No files available</div>
               ) : (
                 <>
                   {selectedFile && (
                     <SelectItem key={selectedFile} value={selectedFile}>
-                      <span className='truncate' title={selectedFile}>
-                        {truncateFilename(selectedFile)}
+                      <span className='truncate max-w-[350px] block' title={selectedFile}>
+                        {truncateFilename(selectedFile, 50)}
                       </span>
                     </SelectItem>
                   )}
                   {remainingFiles.map(file => (
                     <SelectItem key={file} value={file}>
-                      <span className='text-sm break-all'>{file}</span>
+                      <span className='text-sm break-words max-w-[350px] block' title={file}>
+                        {truncateFilename(file, 50)}
+                      </span>
                     </SelectItem>
                   ))}
                 </>
@@ -223,21 +244,28 @@ export default function FileSelectionPopup({
   return (
     <Dialog open={isOpen}>
       {isEditing ? (
-        <DialogContent className='max-w-4xl w-full sm:w-[95vw] max-h-[90vh] min-h-[60vh] flex flex-col'>
-          <DialogTitle>Edit Analysis Files</DialogTitle>
-          <div className='flex-grow space-y-6 overflow-y-auto px-2 md:px-4 py-2'>
+        <DialogContent className='max-w-4xl w-[95vw] max-h-[90vh] min-h-[60vh] flex flex-col'>
+          <DialogTitle className='text-lg font-semibold'>Edit Analysis Files</DialogTitle>
+          <div className='flex-grow overflow-y-auto px-1 py-2'>
             {loading ? (
-              <div className='text-center py-8 text-gray-500'>Loading available files...</div>
+              <div className='flex items-center justify-center py-12'>
+                <div className='text-center text-gray-500'>
+                  <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4'></div>
+                  Loading available files...
+                </div>
+              </div>
             ) : (
-              <div className='space-y-8'>
-                {renderRow('Gene File', 'gene')}
-                {renderRow('Transcript File', 'transcript')}
-                {renderRow('PCA File', 'pca')}
-                {renderRow('Differential Expression', 'differentialexpression')}
+              <div className='space-y-4 max-w-full'>
+                <div className='grid gap-4'>
+                  {renderRow('Gene File', 'gene')}
+                  {renderRow('Transcript File', 'transcript')}
+                  {renderRow('PCA File', 'pca')}
+                  {renderRow('Differential Expression Files', 'differentialexpression')}
+                </div>
               </div>
             )}
           </div>
-          <DialogFooter className='gap-2 flex-col sm:flex-row justify-between'>
+          <DialogFooter className='gap-2 flex-col sm:flex-row justify-between border-t pt-4'>
             <DialogClose asChild>
               <Button
                 type='button'
@@ -246,7 +274,7 @@ export default function FileSelectionPopup({
                   setIsEditing(false);
                   onClose();
                 }}
-                className='w-full sm:w-auto'
+                className='w-full sm:w-auto order-2 sm:order-1'
               >
                 Cancel
               </Button>
@@ -254,75 +282,97 @@ export default function FileSelectionPopup({
             <Button
               onClick={() => setIsEditing(false)}
               disabled={!canProceed}
-              className='bg-primary text-white hover:bg-primary w-full sm:w-auto'
+              className='bg-primary text-white hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2'
             >
-              Confirm
+              Confirm Selection
             </Button>
           </DialogFooter>
         </DialogContent>
       ) : (
-        <DialogContent className='max-w-2xl w-full sm:w-[95vw]'>
-          <DialogTitle>Confirm File Selection</DialogTitle>
-          <div className='flex-grow space-y-4 overflow-y-auto px-2 md:px-4 py-2 max-h-[60vh]'>
-            <div className='space-y-3'>
-              <div>
-                <p className='font-medium'>Gene File:</p>
-                <div className='max-h-32 overflow-y-auto bg-muted/50 rounded p-2 text-xs space-y-1'>
-                  <div className='truncate' title={selections.gene}>
-                    {selections.gene}
-                  </div>
+        <DialogContent className='max-w-3xl w-[95vw] max-h-[85vh] flex flex-col'>
+          <DialogTitle className='text-lg font-semibold'>Confirm File Selection</DialogTitle>
+          <div className='flex-grow overflow-y-auto px-1 py-2'>
+            <div className='space-y-6'>
+              <div className='grid grid-cols-1 md:grid-cols-4 gap-4 items-start'>
+                <div className='md:col-span-1 flex items-center justify-center min-h-[60px]'>
+                  <p className='font-semibold text-base'>Gene File:</p>
                 </div>
-              </div>
-              <div>
-                <p className='font-medium'>Transcript File:</p>
-                <div className='max-h-32 overflow-y-auto bg-muted/50 rounded p-2 text-xs space-y-1'>
-                  <div className='truncate' title={selections.transcript}>
-                    {selections.transcript}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className='font-medium'>PCA File:</p>
-                <div className='max-h-32 overflow-y-auto bg-muted/50 rounded p-2 text-xs space-y-1'>
-                  <div className='truncate' title={selections.pca}>
-                    {selections.pca}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className='font-medium'>
-                  {selections.differentialexpression.length === 1
-                    ? 'Differential Expression File:'
-                    : `Differential Expression Files (${selections.differentialexpression.length}):`}
-                </p>
-                <div className='max-h-32 overflow-y-auto bg-muted/50 rounded p-2 text-xs space-y-1'>
-                  {selections.differentialexpression.length === 1 ? (
-                    <div className='truncate' title={selections.differentialexpression[0]}>
-                      {selections.differentialexpression[0]}
+                <div className='md:col-span-3'>
+                  <div className='bg-muted/50 rounded-md p-3 border'>
+                    <div className='text-sm break-words' title={selections.gene}>
+                      {selections.gene || 'No file selected'}
                     </div>
-                  ) : (
-                    selections.differentialexpression.map((file, index) => (
-                      <div key={index} className='truncate' title={file}>
-                        {file}
+                  </div>
+                </div>
+              </div>
+
+              <div className='grid grid-cols-1 md:grid-cols-4 gap-4 items-start'>
+                <div className='md:col-span-1 flex items-center justify-center min-h-[60px]'>
+                  <p className='font-semibold text-base'>Transcript File:</p>
+                </div>
+                <div className='md:col-span-3'>
+                  <div className='bg-muted/50 rounded-md p-3 border'>
+                    <div className='text-sm break-words' title={selections.transcript}>
+                      {selections.transcript || 'No file selected'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className='grid grid-cols-1 md:grid-cols-4 gap-4 items-start'>
+                <div className='md:col-span-1 flex items-center justify-center min-h-[60px]'>
+                  <p className='font-semibold text-base'>PCA File:</p>
+                </div>
+                <div className='md:col-span-3'>
+                  <div className='bg-muted/50 rounded-md p-3 border'>
+                    <div className='text-sm break-words' title={selections.pca}>
+                      {selections.pca || 'No file selected'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className='grid grid-cols-1 md:grid-cols-4 gap-4 items-start'>
+                <div className='md:col-span-1 flex items-center justify-center min-h-[100px]'>
+                  <p className='font-semibold text-base'>
+                    Differential Expression Files ({selections.differentialexpression.length}):
+                  </p>
+                </div>
+                <div className='md:col-span-3'>
+                  <div className='bg-muted/50 rounded-md p-3 border max-h-48 overflow-y-auto'>
+                    {selections.differentialexpression.length === 0 ? (
+                      <div className='text-sm text-muted-foreground'>No files selected</div>
+                    ) : (
+                      <div className='space-y-2'>
+                        {selections.differentialexpression.map((file, index) => (
+                          <div key={index} className='text-sm break-words' title={file}>
+                            {index + 1}. {file}
+                          </div>
+                        ))}
                       </div>
-                    ))
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          <DialogFooter className='gap-2 flex-col sm:flex-row justify-between'>
+          <DialogFooter className='gap-2 flex-col sm:flex-row justify-between border-t pt-4'>
             <DialogClose asChild>
-              <Button type='button' variant='ghost' onClick={onClose} className='w-full sm:w-auto'>
+              <Button type='button' variant='ghost' onClick={onClose} className='w-full sm:w-auto order-3 sm:order-1'>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type='button' variant='secondary' onClick={() => setIsEditing(true)} className='w-full sm:w-auto'>
+            <Button
+              type='button'
+              variant='secondary'
+              onClick={() => setIsEditing(true)}
+              className='w-full sm:w-auto order-2'
+            >
               Edit Selection
             </Button>
             <Button
               onClick={confirmProceed}
-              className='bg-primary text-white hover:bg-primary w-full sm:w-auto'
+              className='bg-primary text-white hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-3'
               disabled={!canProceed}
             >
               Submit
