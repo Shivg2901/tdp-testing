@@ -7,13 +7,15 @@ export function TranscriptTab({
   files: Record<string, boolean | string[]>;
   getFileUrl: (filename: string) => string;
 }) {
+  const samplesheetKey = Object.keys(files).find(key => key.toLowerCase().includes('sample'));
+  const geneKey = Object.keys(files).find(key => key.toLowerCase().includes('gene'));
+  const transcriptKey = Object.keys(files).find(key => key.toLowerCase().includes('transcript'));
+
   return (
     <TranscriptExpression
-      samplesheetUrl={files['samplesheet.valid.csv'] ? getFileUrl('samplesheet.valid.csv') : undefined}
-      geneCountsUrl={files['salmon.merged.gene_counts.tsv'] ? getFileUrl('salmon.merged.gene_counts.tsv') : undefined}
-      transcriptCountsUrl={
-        files['salmon.merged.transcript_counts.tsv'] ? getFileUrl('salmon.merged.transcript_counts.tsv') : undefined
-      }
+      samplesheetUrl={samplesheetKey ? getFileUrl(samplesheetKey) : undefined}
+      geneCountsUrl={geneKey ? getFileUrl(geneKey) : undefined}
+      transcriptCountsUrl={transcriptKey ? getFileUrl(transcriptKey) : undefined}
     />
   );
 }

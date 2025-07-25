@@ -7,10 +7,13 @@ export function PCATab({
   files: Record<string, boolean | string[]>;
   getFileUrl: (filename: string) => string;
 }) {
+  const samplesheetKey = Object.keys(files).find(key => key.toLowerCase().includes('sample'));
+  const pcaKey = Object.keys(files).find(key => key.toLowerCase().includes('pca'));
+
   return (
     <PCA
-      samplesheetUrl={files['samplesheet.valid.csv'] ? getFileUrl('samplesheet.valid.csv') : undefined}
-      pcaUrl={files['PCA.csv'] ? getFileUrl('PCA.csv') : undefined}
+      samplesheetUrl={samplesheetKey ? getFileUrl(samplesheetKey) : undefined}
+      pcaUrl={pcaKey ? getFileUrl(pcaKey) : undefined}
     />
   );
 }

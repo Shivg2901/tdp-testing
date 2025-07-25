@@ -60,12 +60,7 @@ export default function FileSelectionPopup({
     differentialexpression: [] as string[],
   });
 
-  const canProceed =
-    selections.gene &&
-    selections.transcript &&
-    selections.pca &&
-    selections.differentialexpression.length > 0 &&
-    !loading;
+  const canProceed = !loading;
 
   const orderFiles = (files: string[], type: keyof FileOptions) => {
     const keyword = type.toLowerCase();
@@ -116,10 +111,9 @@ export default function FileSelectionPopup({
         setFileOptions(options);
 
         setSelections({
-          gene: options.gene.find(f => f.toLowerCase().includes('gene')) || options.gene[0] || '',
-          transcript:
-            options.transcript.find(f => f.toLowerCase().includes('transcript')) || options.transcript[0] || '',
-          pca: options.pca.find(f => f.toLowerCase().includes('pca')) || options.pca[0] || '',
+          gene: options.gene.find(f => f.toLowerCase().includes('gene')) || '',
+          transcript: options.transcript.find(f => f.toLowerCase().includes('transcript')) || '',
+          pca: options.pca.find(f => f.toLowerCase().includes('pca')) || '',
           differentialexpression: options.differentialexpression.filter(f =>
             f.toLowerCase().includes('differentialexpression'),
           ),
@@ -131,7 +125,10 @@ export default function FileSelectionPopup({
   }, [isOpen, selectedGroup, selectedProgram, selectedProject]);
 
   const handleChange = (type: keyof FileOptions, value: string | string[]) => {
-    setSelections(prev => ({ ...prev, [type]: value }));
+    setSelections(prev => ({
+      ...prev,
+      [type]: value === '__none__' ? '' : value,
+    }));
   };
 
   const confirmProceed = () => {
@@ -165,7 +162,6 @@ export default function FileSelectionPopup({
                     : 'None'}
                 </strong>
               </span>
-              {/* Show selected files in a single scrollable container */}
               {selections.differentialexpression.length > 0 && (
                 <div className='max-h-32 overflow-y-auto bg-muted/50 rounded-md p-3 border'>
                   <div className='space-y-2'>
@@ -195,7 +191,6 @@ export default function FileSelectionPopup({
 
     const allFiles = orderFiles(fileOptions[type], type);
     const selectedFile = selections[type] as string;
-    const remainingFiles = allFiles.filter(f => f !== selectedFile);
 
     return (
       <div className='grid grid-cols-1 md:grid-cols-4 gap-4 items-start'>
@@ -209,31 +204,21 @@ export default function FileSelectionPopup({
               {selectedFile ? truncateFilename(selectedFile, 60) : 'None'}
             </strong>
           </span>
-          <Select value={selectedFile} onValueChange={v => handleChange(type, v)} disabled={allFiles.length === 0}>
+          <Select value={selectedFile || '__none__'} onValueChange={v => handleChange(type, v === '__none__' ? '' : v)}>
             <SelectTrigger className='w-full'>
               <SelectValue placeholder={`Select ${type} file`} />
             </SelectTrigger>
             <SelectContent side='bottom' align='start' className='max-w-[400px]'>
-              {allFiles.length === 0 ? (
-                <div className='px-4 py-2 text-sm text-muted-foreground'>No files available</div>
-              ) : (
-                <>
-                  {selectedFile && (
-                    <SelectItem key={selectedFile} value={selectedFile}>
-                      <span className='truncate max-w-[350px] block' title={selectedFile}>
-                        {truncateFilename(selectedFile, 50)}
-                      </span>
-                    </SelectItem>
-                  )}
-                  {remainingFiles.map(file => (
-                    <SelectItem key={file} value={file}>
-                      <span className='text-sm break-words max-w-[350px] block' title={file}>
-                        {truncateFilename(file, 50)}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </>
-              )}
+              <SelectItem key='none' value='__none__'>
+                <span className='text-sm text-muted-foreground'>None</span>
+              </SelectItem>
+              {allFiles.map(file => (
+                <SelectItem key={file} value={file}>
+                  <span className='text-sm break-words max-w-[350px] block' title={file}>
+                    {truncateFilename(file, 50)}
+                  </span>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
