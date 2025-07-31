@@ -6,6 +6,7 @@ import Papa from 'papaparse';
 import { VirtualizedCombobox } from '@/components/VirtualizedCombobox';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 
 type GeneRow = {
   [key: string]: string | number;
@@ -260,6 +261,13 @@ export default function TranscriptExpression({
         <div className='min-h-[60vh] flex items-center justify-center'>
           <div className='text-center text-gray-500 text-lg font-medium'>
             Kindly add CPM/TPM metric files to view plots.
+          </div>
+        </div>
+      ) : isLoading ? (
+        <div className='min-h-[60vh] flex items-center justify-center'>
+          <div className='text-center text-gray-500'>
+            <Spinner />
+            <p className='mt-4'>Loading data...</p>
           </div>
         </div>
       ) : (

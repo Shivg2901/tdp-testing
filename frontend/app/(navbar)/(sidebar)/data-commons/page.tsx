@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import FileSelectionPopup from '@/components/data-commons/PopUp';
+import { Spinner } from '@/components/ui/spinner';
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -201,8 +202,12 @@ export default function DataCommonsPage() {
             overflow: 'hidden',
           }}
         >
-          {loading && <div className='text-center'>Loading project description...</div>}
-
+          {loading && (
+            <div className='text-center flex flex-col items-center justify-center'>
+              <Spinner />
+              <p className='mt-4 text-gray-500'>Loading project description...</p>
+            </div>
+          )}
           {!loading && (
             <>
               {(!selectedGroup || descriptionFiles.length === 0) && (

@@ -5,7 +5,7 @@ import Plot from 'react-plotly.js';
 import Papa from 'papaparse';
 import type { Shape } from 'plotly.js';
 import { MultiSelect } from '../ui/multiselect';
-
+import { Spinner } from '@/components/ui/spinner';
 type GenericRow = Record<string, string | number | null>;
 
 type Point = {
@@ -52,8 +52,9 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
     }
     setLoading(true);
     const contrastNames = Object.keys(deFiles).map(filename => {
-      if (filename === 'DifferentialExpression.csv') return 'default';
-      const match = filename.match(/^DifferentialExpression-(.+)\.csv$/);
+      const lowerCaseFileName = filename.toLowerCase();
+      if (lowerCaseFileName === 'differentialexpression.csv') return 'default';
+      const match = lowerCaseFileName.match(/^differentialexpression[-_](.+)\.csv$/);
       return match ? match[1] : filename;
     });
     setAvailableContrasts(contrastNames);
@@ -68,6 +69,7 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
 
   useEffect(() => {
     if (!deFiles) return;
+
     const toFetch = debouncedContrasts.filter(c => !contrastData[c]);
     if (toFetch.length === 0) return;
 
@@ -75,12 +77,19 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
 
     toFetch.forEach(contrast => {
       let csvText = '';
-      if (contrast === 'default' && deFiles['DifferentialExpression.csv']) {
-        csvText = deFiles['DifferentialExpression.csv'];
+
+      // Normalize keys for case-insensitive match
+      const deFileKeys = Object.keys(deFiles);
+      const lowerKeyMap = Object.fromEntries(deFileKeys.map(original => [original.toLowerCase(), original]));
+
+      if (contrast === 'default' && lowerKeyMap['differentialexpression.csv']) {
+        csvText = deFiles[lowerKeyMap['differentialexpression.csv']];
       } else {
-        const key = Object.keys(deFiles).find(k => k === `DifferentialExpression-${contrast}.csv`);
-        if (key) csvText = deFiles[key];
+        const expectedKey = `differentialexpression_${contrast}.csv`;
+        const matchedKey = lowerKeyMap[expectedKey.toLowerCase()];
+        if (matchedKey) csvText = deFiles[matchedKey];
       }
+
       if (csvText) {
         Papa.parse<GenericRow>(csvText, {
           header: true,
@@ -292,12 +301,13 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
     );
   }
 
+  //loader set
   if (loading || !allDataLoaded) {
     return (
       <div className='w-full px-4 sm:px-6 lg:px-8 max-w-[95vw] lg:max-w-[1500px] mx-auto'>
         <div className='min-h-[60vh] flex flex-col items-center justify-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4' />
-          <p className='text-gray-500 text-lg'>Loading data...</p>
+          <Spinner />
+          <p className='text-gray-500 text-lg mt-4'>Loading data...</p>
         </div>
       </div>
     );

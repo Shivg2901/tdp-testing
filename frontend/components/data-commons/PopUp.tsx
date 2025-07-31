@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { MultiSelect } from '@/components/ui/multiselect';
-
+import { Spinner } from '@/components/ui/spinner';
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface FileSelectionPopupProps {
@@ -175,7 +175,7 @@ export default function FileSelectionPopup({
               )}
               <MultiSelect
                 options={orderFiles(fileOptions.differentialexpression, 'differentialexpression').map(file => ({
-                  label: truncateFilename(file, 40),
+                  label: file,
                   value: file,
                 }))}
                 selectedValues={selections.differentialexpression}
@@ -235,7 +235,7 @@ export default function FileSelectionPopup({
             {loading ? (
               <div className='flex items-center justify-center py-12'>
                 <div className='text-center text-gray-500'>
-                  <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4'></div>
+                  <Spinner className='mx-auto mb-4' />
                   Loading available files...
                 </div>
               </div>
