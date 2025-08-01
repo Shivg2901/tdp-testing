@@ -3,7 +3,6 @@ import React from 'react';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useRouter } from 'next/navigation';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { MultiSelect } from '@/components/ui/multiselect';
 import { Spinner } from '@/components/ui/spinner';
@@ -25,7 +24,9 @@ interface FileOptions {
 }
 
 const filterCsvTsv = (files: string[]) =>
-  files.filter(f => f.toLowerCase().endsWith('.csv') || f.toLowerCase().endsWith('.tsv'));
+  files.filter(
+    f => f.toLowerCase().endsWith('.csv') || f.toLowerCase().endsWith('.tsv') || f.toLowerCase().endsWith('.txt'),
+  );
 
 const truncateFilename = (filename: string, maxLength = 50) => {
   if (filename.length <= maxLength) return filename;
@@ -42,8 +43,6 @@ export default function FileSelectionPopup({
   selectedProgram,
   selectedProject,
 }: FileSelectionPopupProps) {
-  const router = useRouter();
-
   const [isEditing, setIsEditing] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [fileOptions, setFileOptions] = React.useState<FileOptions>({
@@ -141,7 +140,9 @@ export default function FileSelectionPopup({
       pcaFile: selections.pca,
       deFiles: selections.differentialexpression.join(','),
     });
-    router.push(`/data?${params.toString()}`);
+
+    const url = `/data?${params.toString()}`;
+    window.open(url, '_blank');
     onClose();
   };
 

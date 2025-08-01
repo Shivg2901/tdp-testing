@@ -53,8 +53,13 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
     setLoading(true);
     const contrastNames = Object.keys(deFiles).map(filename => {
       const lowerCaseFileName = filename.toLowerCase();
-      if (lowerCaseFileName === 'differentialexpression.csv') return 'default';
-      const match = lowerCaseFileName.match(/^differentialexpression[-_](.+)\.csv$/);
+      if (
+        lowerCaseFileName === 'differentialexpression.csv' ||
+        lowerCaseFileName === 'differentialexpression.tsv' ||
+        lowerCaseFileName === 'differentialexpression.txt'
+      )
+        return 'default';
+      const match = lowerCaseFileName.match(/^differentialexpression[-_](.+)\.(csv|tsv|txt)$/);
       return match ? match[1] : filename;
     });
     setAvailableContrasts(contrastNames);
@@ -82,12 +87,30 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
       const deFileKeys = Object.keys(deFiles);
       const lowerKeyMap = Object.fromEntries(deFileKeys.map(original => [original.toLowerCase(), original]));
 
-      if (contrast === 'default' && lowerKeyMap['differentialexpression.csv']) {
-        csvText = deFiles[lowerKeyMap['differentialexpression.csv']];
+      if (
+        contrast === 'default' &&
+        (lowerKeyMap['differentialexpression.csv'] ||
+          lowerKeyMap['differentialexpression.tsv'] ||
+          lowerKeyMap['differentialexpression.txt'])
+      ) {
+        csvText =
+          deFiles[lowerKeyMap['differentialexpression.csv']] ||
+          deFiles[lowerKeyMap['differentialexpression.tsv']] ||
+          deFiles[lowerKeyMap['differentialexpression.txt']];
       } else {
-        const expectedKey = `differentialexpression_${contrast}.csv`;
-        const matchedKey = lowerKeyMap[expectedKey.toLowerCase()];
-        if (matchedKey) csvText = deFiles[matchedKey];
+        const extensions = ['csv', 'tsv', 'txt'];
+        let matchedKey: string | undefined;
+
+        for (const ext of extensions) {
+          const key1 = `differentialexpression_${contrast}.${ext}`.toLowerCase();
+          const key2 = `differentialexpression-${contrast}.${ext}`.toLowerCase();
+          matchedKey = lowerKeyMap[key1] || lowerKeyMap[key2];
+          if (matchedKey) break;
+        }
+
+        if (matchedKey) {
+          csvText = deFiles[matchedKey];
+        }
       }
 
       if (csvText) {
