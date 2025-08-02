@@ -21,6 +21,7 @@ interface FileOptions {
   transcript: string[];
   pca: string[];
   differentialexpression: string[];
+  samplesheet: string[];
 }
 
 const filterCsvTsv = (files: string[]) =>
@@ -50,6 +51,7 @@ export default function FileSelectionPopup({
     transcript: [],
     pca: [],
     differentialexpression: [],
+    samplesheet: [],
   });
 
   const [selections, setSelections] = React.useState({
@@ -57,6 +59,7 @@ export default function FileSelectionPopup({
     transcript: '',
     pca: '',
     differentialexpression: [] as string[],
+    samplesheet: '',
   });
 
   const canProceed = !loading;
@@ -79,7 +82,7 @@ export default function FileSelectionPopup({
     if (isOpen && selectedGroup && selectedProgram && selectedProject) {
       setLoading(true);
 
-      const keys: (keyof FileOptions)[] = ['gene', 'transcript', 'pca', 'differentialexpression'];
+      const keys: (keyof FileOptions)[] = ['gene', 'transcript', 'pca', 'differentialexpression', 'samplesheet'];
 
       const fetchFileList = async (key: keyof FileOptions) => {
         const url = `${API_BASE}/data-commons/project/${encodeURIComponent(
@@ -103,6 +106,7 @@ export default function FileSelectionPopup({
           transcript: [],
           pca: [],
           differentialexpression: [],
+          samplesheet: [],
         };
         results.forEach(([key, files]) => {
           options[key] = filterCsvTsv(files);
@@ -113,6 +117,7 @@ export default function FileSelectionPopup({
           gene: options.gene.find(f => f.toLowerCase().includes('gene')) || '',
           transcript: options.transcript.find(f => f.toLowerCase().includes('transcript')) || '',
           pca: options.pca.find(f => f.toLowerCase().includes('pca')) || '',
+          samplesheet: options.samplesheet.find(f => f.toLowerCase().includes('sample')) || '',
           differentialexpression: options.differentialexpression.filter(f =>
             f.toLowerCase().includes('differentialexpression'),
           ),
@@ -139,6 +144,7 @@ export default function FileSelectionPopup({
       transcriptFile: selections.transcript,
       pcaFile: selections.pca,
       deFiles: selections.differentialexpression.join(','),
+      sampleFile: selections.samplesheet,
     });
 
     const url = `/data?${params.toString()}`;

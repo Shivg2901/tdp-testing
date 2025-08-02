@@ -162,7 +162,7 @@ export class DataCommonsService {
     ];
 
     const allowedKeysDetailed: Record<string, string[] | string> = {
-      samplesheet: ['samplesheet', 'samples'],
+      samplesheet: ['samplesheet', 'sample'],
       gene: ['gene'],
       transcript: ['transcript'],
       pca: ['pca'],

@@ -43,15 +43,20 @@ export default function TranscriptExpression({
   const [sampleDataExists, setSampleDataExists] = useState(false);
 
   function getIdColName(row: GeneRow): string {
-    return Object.keys(row)[0];
+    const keys = Object.keys(row);
+    return keys.length > 0 ? keys[0] : '0';
   }
+
   function getSampleColNames(row: GeneRow): string[] {
-    return Object.keys(row).slice(1);
+    const keys = Object.keys(row);
+    return keys.length > 1 ? keys.slice(1) : [];
   }
 
   function getSampleSheetColNames(row: SampleRow): [string, string] {
     const keys = Object.keys(row);
-    return [keys[0], keys[1]];
+    // Return first column and last column instead of first and second
+    if (keys.length < 2) return [keys[0] || '0', keys[0] || '0'];
+    return [keys[0] || '0', keys[keys.length - 1] || String(keys.length - 1)];
   }
 
   useEffect(() => {
@@ -80,13 +85,24 @@ export default function TranscriptExpression({
               setGroupToColor({});
               return;
             }
+
+            // Get first column for sample name and last column for group
             const [sampleCol, groupCol] = getSampleSheetColNames(rows[0]);
+
             const sampleGroup: Record<string, string> = {};
             const groupSet = new Set<string>();
+
             rows.forEach(row => {
-              sampleGroup[row[sampleCol]] = row[groupCol];
-              groupSet.add(row[groupCol]);
+              // Handle both named and indexed access
+              const sample = row[sampleCol] !== undefined ? row[sampleCol] : row['0'];
+              const group = row[groupCol] !== undefined ? row[groupCol] : row[String(Object.keys(row).length - 1)];
+
+              if (sample !== undefined && group !== undefined) {
+                sampleGroup[String(sample)] = String(group);
+                groupSet.add(String(group));
+              }
             });
+
             const groupArr = Array.from(groupSet).sort();
             const groupColor: Record<string, string> = {};
             groupArr.forEach((g, i) => {
@@ -158,7 +174,12 @@ export default function TranscriptExpression({
     const currentData = dataSource === 'gene' ? geneData : transcriptData;
     if (currentData.length > 0) {
       const idCol = getIdColName(currentData[0]);
-      const genes = currentData.map(row => row[idCol] as string).filter(Boolean);
+      const genes = currentData
+        .map(row => {
+          const id = row[idCol] !== undefined ? row[idCol] : row['0'];
+          return id as string;
+        })
+        .filter(Boolean);
       genes.sort();
       setGeneList(genes);
       setSelectedGenes(new Set());
@@ -178,10 +199,19 @@ export default function TranscriptExpression({
     const newGeneDataMap: Record<string, { x: string[]; y: number[] }> = {};
 
     selectedGenes.forEach(gene => {
-      const row = currentData.find(row => row[idCol] === gene);
+      const row = currentData.find(r => {
+        // Handle both named and indexed access for gene ID
+        const rowId = r[idCol] !== undefined ? r[idCol] : r['0'];
+        return rowId === gene;
+      });
+
       if (row) {
         const x = sampleCols;
-        const y = x.map(k => Number(row[k]));
+        const y = x.map(k => {
+          // Handle both named and indexed access for expression values
+          const val = row[k] !== undefined ? row[k] : row[k.toString()];
+          return Number(val);
+        });
         newGeneDataMap[gene] = { x, y };
       } else {
         newGeneDataMap[gene] = { x: [], y: [] };

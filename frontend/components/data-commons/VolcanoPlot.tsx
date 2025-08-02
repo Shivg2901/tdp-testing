@@ -120,22 +120,29 @@ export default function VolcanoPlot({ deFiles }: VolcanoPlotProps) {
           skipEmptyLines: true,
           complete: results => {
             const headers = results.meta.fields ?? [];
-            const idKey = headers[0];
-            const logFCKey = headers.find(h => h.toLowerCase() === 'logfc') || headers.find(h => /fc/i.test(h));
+
+            const idKey = headers[0] || 'id';
+            const logFCKey =
+              headers.find(h => h && h.toLowerCase() === 'logfc') || headers.find(h => h && /fc/i.test(h));
             const pvalKey =
-              headers.find(h => h.toLowerCase() === 'pvalue') || headers.find(h => /p[\s\-]?val/i.test(h));
+              headers.find(h => h && h.toLowerCase() === 'pvalue') || headers.find(h => h && /p[\s\-]?val/i.test(h));
+
             if (!logFCKey || !pvalKey) {
               console.warn(`Skipping file ${contrast} due to missing logFC or PValue columns`);
               return;
             }
-            const filtered = results.data.filter(
-              row =>
+
+            const filtered = results.data.filter(row => {
+              const idValue = idKey in row ? row[idKey] : row[''] || '';
+              return (
                 typeof row[logFCKey!] === 'number' &&
                 typeof row[pvalKey!] === 'number' &&
-                typeof row[idKey] === 'string',
-            );
+                (typeof idValue === 'string' || typeof idValue === 'number')
+              );
+            });
+
             newData[contrast] = filtered.map(row => ({
-              id: row[idKey] as string,
+              id: String(idKey in row ? row[idKey] : row[''] || ''),
               logFC: row[logFCKey!] as number,
               PValue: row[pvalKey!] as number,
             }));

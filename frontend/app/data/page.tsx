@@ -29,6 +29,7 @@ function PDCSNetworkTabs() {
   const transcriptFile = searchParams?.get('transcriptFile');
   const pcaFile = searchParams?.get('pcaFile');
   const deFile = searchParams?.get('deFiles');
+  const sampleFile = searchParams?.get('sampleFile');
   const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   const deFilesArray = deFile?.split(',');
@@ -59,9 +60,14 @@ function PDCSNetworkTabs() {
       <div className='flex-1 p-6'>
         <div className='mt-4'>
           {activeTab === 'transcript' && (
-            <TranscriptTab geneFile={geneFile} transcriptFile={transcriptFile} getFileUrl={getFileUrl} />
+            <TranscriptTab
+              geneFile={geneFile}
+              transcriptFile={transcriptFile}
+              getFileUrl={getFileUrl}
+              sampleFile={sampleFile}
+            />
           )}
-          {activeTab === 'pca' && <PCATab pcaFile={pcaFile} getFileUrl={getFileUrl} />}
+          {activeTab === 'pca' && <PCATab pcaFile={pcaFile} getFileUrl={getFileUrl} sampleFile={sampleFile} />}
           {activeTab === 'de' && <DETab deFilesArray={deFilesArray} getFileUrl={getFileUrl} />}
         </div>
       </div>

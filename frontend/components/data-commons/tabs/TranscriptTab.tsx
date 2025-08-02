@@ -4,14 +4,16 @@ export function TranscriptTab({
   geneFile,
   transcriptFile,
   getFileUrl,
+  sampleFile,
 }: {
   geneFile: string | null | undefined;
   transcriptFile: string | null | undefined;
   getFileUrl: (filename: string) => string;
+  sampleFile: string | null | undefined;
 }) {
   return (
     <TranscriptExpression
-      samplesheetUrl={getFileUrl('samplesheet.valid.csv')}
+      samplesheetUrl={sampleFile ? getFileUrl(sampleFile) : undefined}
       geneCountsUrl={geneFile ? getFileUrl(geneFile) : undefined}
       transcriptCountsUrl={transcriptFile ? getFileUrl(transcriptFile) : undefined}
     />
