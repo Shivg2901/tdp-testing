@@ -46,6 +46,8 @@ export default function FileSelectionPopup({
 }: FileSelectionPopupProps) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [loadingProceed, setLoadingProceed] = React.useState(false);
+
   const [fileOptions, setFileOptions] = React.useState<FileOptions>({
     gene: [],
     transcript: [],
@@ -136,6 +138,8 @@ export default function FileSelectionPopup({
   };
 
   const confirmProceed = () => {
+    setLoadingProceed(true);
+
     const params = new URLSearchParams({
       group: selectedGroup,
       program: selectedProgram,
@@ -148,8 +152,12 @@ export default function FileSelectionPopup({
     });
 
     const url = `/data?${params.toString()}`;
-    window.open(url, '_blank');
-    onClose();
+
+    setTimeout(() => {
+      window.open(url, '_blank');
+      setLoadingProceed(false);
+      onClose();
+    }, 600);
   };
 
   const renderRow = (label: string, type: keyof FileOptions) => {
@@ -365,9 +373,16 @@ export default function FileSelectionPopup({
             <Button
               onClick={confirmProceed}
               className='bg-primary text-white hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-3'
-              disabled={!canProceed}
+              disabled={!canProceed || loadingProceed}
             >
-              Submit
+              {loadingProceed ? (
+                <div className='flex items-center gap-2'>
+                  <Spinner className='h-4 w-4' />
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                'Submit'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

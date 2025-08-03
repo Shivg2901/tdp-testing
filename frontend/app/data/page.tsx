@@ -5,6 +5,7 @@ import '@react-sigma/core/lib/style.css';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
 import { Suspense } from 'react';
+import { Spinner } from '@/components/ui/spinner';
 
 const TranscriptTab = dynamic(
   () => import('@/components/data-commons/tabs/TranscriptTab').then(mod => mod.TranscriptTab),
@@ -76,8 +77,34 @@ function PDCSNetworkTabs() {
 }
 
 export default function NetworkPage() {
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className='flex flex-col items-center justify-center min-h-screen'>
+        <Spinner className='h-12 w-12' />
+        <p className='mt-4 text-lg text-gray-600'>Loading analysis dashboard...</p>
+      </div>
+    );
+  }
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className='flex flex-col items-center justify-center min-h-screen'>
+          <Spinner className='h-12 w-12' />
+          <p className='mt-4 text-lg text-gray-600'>Loading components...</p>
+        </div>
+      }
+    >
       <PDCSNetworkTabs />
     </Suspense>
   );

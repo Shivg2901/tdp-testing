@@ -34,6 +34,7 @@ export default function DataCommonsPage() {
   const [currentIndex, setCurrentIndex] = React.useState<number>(0);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [showFileSelectionPopup, setShowFileSelectionPopup] = React.useState<boolean>(false);
+  const [loadingPlots, setLoadingPlots] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     fetch(`${API_BASE}/data-commons/structure`)
@@ -87,7 +88,12 @@ export default function DataCommonsPage() {
 
   const handleGoToPlots = () => {
     if (selectedGroup && selectedProgram && selectedProject) {
-      setShowFileSelectionPopup(true);
+      setLoadingPlots(true);
+      // Show spinner briefly before showing the popup
+      setTimeout(() => {
+        setLoadingPlots(false);
+        setShowFileSelectionPopup(true);
+      }, 800);
     }
   };
 
@@ -189,6 +195,12 @@ export default function DataCommonsPage() {
             >
               Go to Plots
             </Button>
+            {loadingPlots && (
+              <div className='mt-4 text-center flex flex-col items-center justify-center'>
+                <Spinner />
+                <p className='mt-2 text-gray-500'>Loading plot options...</p>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -319,7 +331,7 @@ export default function DataCommonsPage() {
         </div>
       </div>
       <FileSelectionPopup
-        isOpen={showFileSelectionPopup}
+        isOpen={showFileSelectionPopup && !loadingPlots}
         onClose={() => setShowFileSelectionPopup(false)}
         selectedGroup={selectedGroup}
         selectedProgram={selectedProgram}
