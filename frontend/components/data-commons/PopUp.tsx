@@ -259,6 +259,7 @@ export default function FileSelectionPopup({
                 <div className='grid gap-4'>
                   {renderRow('Gene File', 'gene')}
                   {renderRow('Transcript File', 'transcript')}
+                  {renderRow('Sample Sheet File', 'samplesheet')}
                   {renderRow('PCA File', 'pca')}
                   {renderRow('Differential Expression Files', 'differentialexpression')}
                 </div>
@@ -314,6 +315,19 @@ export default function FileSelectionPopup({
                   <div className='bg-muted/50 rounded-md p-3 border'>
                     <div className='text-sm break-words' title={selections.transcript}>
                       {selections.transcript || 'No file selected'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className='grid grid-cols-1 md:grid-cols-4 gap-4 items-start'>
+                <div className='md:col-span-1 flex items-center justify-center min-h-[60px]'>
+                  <p className='font-semibold text-base'>Sample Sheet File:</p>
+                </div>
+                <div className='md:col-span-3'>
+                  <div className='bg-muted/50 rounded-md p-3 border'>
+                    <div className='text-sm break-words' title={selections.samplesheet}>
+                      {selections.samplesheet || 'No file selected'}
                     </div>
                   </div>
                 </div>
