@@ -22,6 +22,7 @@ export default function NetworkPage() {
     <SigmaContainer
       className='w-full h-full'
       settings={{
+        allowInvalidContainer: true,
         enableEdgeEvents: true,
         defaultNodeType: 'circle',
         labelRenderedSizeThreshold: 0.75,
