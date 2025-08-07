@@ -46,7 +46,7 @@ export interface OpenTargetsTableData {
      * Overall score for the target
      */
     overall_score: number;
-  };
+  }[];
 }
 
 export enum OrderByEnum {

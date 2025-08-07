@@ -31,7 +31,7 @@ export const useStore = create<GraphStore>(() => ({
     hubGeneEdgeCount: 0,
     nodeDegreeProperty: 'Gene Degree',
   },
-  geneIDs: [],
+  geneNames: [],
   diseaseName: '',
   universalData: {},
   radioOptions: {

@@ -58,6 +58,8 @@ export enum Events {
   ALGORITHM = 'algorithm',
   EXPORT = 'export',
   TOGGLE_SEED_GENES = 'toggleSeedGenes',
+  VISIBLE_NODES = 'visible-nodes',
+  VISIBLE_NODES_RESULTS = 'visible-nodes-results',
 }
 export type EventMessage = {
   [Events.ALGORITHM]: {
@@ -70,6 +72,9 @@ export type EventMessage = {
     csvType?: 'universal' | 'interaction' | 'both';
   };
   [Events.TOGGLE_SEED_GENES]: boolean;
+  [Events.VISIBLE_NODES_RESULTS]: {
+    visibleNodeGeneIds: Set<string>;
+  };
 };
 
 export function envURL(env?: string) {

@@ -1,6 +1,6 @@
 import type React from 'react';
 
-export const PrioritisationIndicatorLegend: React.FC<{ width?: number; height?: number }> = ({
+export const PrioritizationIndicatorLegend: React.FC<{ width?: number; height?: number }> = ({
   width = 320,
   height = 50,
 }) => {
