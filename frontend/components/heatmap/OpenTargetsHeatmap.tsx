@@ -31,7 +31,7 @@ export function OpenTargetsHeatmap() {
 
   const diseaseId = useStore(state => state.diseaseName);
   const [sortingColumn, setSortingColumn] = useState<string | null>('Association Score');
-  const [pagination,] = useState({ page: 0, limit: 25 });
+  const [pagination, setPagination] = useState({ page: 0, limit: 25 });
   const [geneIdsToQuery, setGeneIdsToQuery] = useState<Set<string>>(new Set());
 
   const orderByStringToEnum = useCallback((orderBy: string): OrderByEnum => {
@@ -103,6 +103,7 @@ export function OpenTargetsHeatmap() {
         ...prioritization,
       };
     }) || [];
+    
   /***** End Commenting Out API Call *****/
 
   /***** Mock Data Fetching *****/
@@ -177,6 +178,15 @@ export function OpenTargetsHeatmap() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const maxPage = Math.max(0, Math.ceil(geneNames.length / pagination.limit) - 1);
+
+  useEffect(() => {
+    if (pagination.page > maxPage) {
+      setPagination(prev => ({ ...prev, page: maxPage }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geneNames.length, pagination.limit]);
+
   return (
     <div className='h-full'>
       <div className='flex items-center gap-4 p-4'>
@@ -243,19 +253,32 @@ export function OpenTargetsHeatmap() {
       {/* Pagination controls */}
       <div className='flex flex-col items-center w-full mt-2 gap-2'>
         <div className='flex items-center justify-center gap-2 w-full'>
-          <Button variant='outline' size='sm' onClick={() => {}} disabled={!tableData.length}>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => setPagination(prev => ({ ...prev, page: Math.max(prev.page - 1, 0) }))}
+            disabled={pagination.page === 0 || !geneNames.length}
+          >
             <ChevronLeftIcon size={18} />
           </Button>
-          <span className='text-sm'>Page 1 of 3</span>
-          <Button variant='outline' size='sm' onClick={() => {}} disabled={!tableData.length}>
+          <span className='text-sm'>Page {pagination.page + 1}</span>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.page + 1, maxPage) }))}
+            disabled={pagination.page >= maxPage || !geneNames.length}
+          >
             <ChevronRightIcon size={18} />
           </Button>
           <div className='ml-2'>
             <Select
-              defaultValue='25'
-              // onValueChange={value => {
-              //   // Update page size
-              // }}
+              value={pagination.limit.toString()}
+              onValueChange={value => {
+                setPagination(() => ({
+                  page: 0,
+                  limit: parseInt(value, 10)
+                }));
+              }}
             >
               <SelectTrigger className='w-[110px]'>
                 <SelectValue placeholder='Page size' />
