@@ -96,7 +96,7 @@ type Query {
   genes(config: [DataRequired!], geneIDs: [String!]!): [Gene!]!
   getGeneInteractions(input: InteractionInput!, order: Int!): GeneInteractionOutput!
   headers(disease: String!): Header!
-  targetDiseaseAssociationTable(diseaseId: String!, geneIds: [String!]!, orderBy: OrderByEnum = SCORE, page: Pagination): [TargetDiseaseAssociation!]!
+  targetDiseaseAssociationTable(diseaseId: String!, geneIds: [String!]!, orderBy: OrderByEnum = SCORE, page: Pagination): TargetDiseaseAssociationTable!
   topGenesByDisease(diseaseId: String!, limit: Int! = 25): [TopGene!]!
 }
 
@@ -111,10 +111,15 @@ type Target {
   prioritization: [ScoredKeyValue!]!
 }
 
-type TargetDiseaseAssociation {
+type TargetDiseaseAssociationRow {
   datasourceScores: [ScoredKeyValue!]!
   overall_score: Float!
   target: Target!
+}
+
+type TargetDiseaseAssociationTable {
+  rows: [TargetDiseaseAssociationRow!]!
+  totalCount: Int
 }
 
 type TopGene {

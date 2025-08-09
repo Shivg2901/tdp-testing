@@ -2,7 +2,8 @@ import {
   OrderByEnum,
   Pagination,
   ScoredKeyValue,
-  TargetDiseaseAssociation,
+  TargetDiseaseAssociationRow,
+  TargetDiseaseAssociationTable,
   TopGene,
 } from '@/gql/models';
 import { ClickHouseClient, createClient } from '@clickhouse/client';
@@ -63,8 +64,8 @@ export class ClickhouseService {
     diseaseId: string,
     orderBy: OrderByEnum,
     { page, limit }: Pagination,
-  ): Promise<TargetDiseaseAssociation[]> {
-    const offset = page * limit;
+  ): Promise<TargetDiseaseAssociationTable> {
+    const offset = (page - 1) * limit;
 
     // Determine if we should order by overall score or by a specific datasource
     const orderByScore = orderBy === OrderByEnum.SCORE;
@@ -79,7 +80,8 @@ export class ClickhouseService {
           gene_name,
           disease_id,
           groupArray(concat(datasource_id, ',', toString(datasource_score))) AS datasourceScores,
-          overall_score
+          overall_score,
+          count() OVER () AS total_count
         FROM mv_datasource_association_score_overall_association_score
         WHERE disease_id = {diseaseId:String}
           AND gene_id IN ({geneIds:Array(String)})
@@ -99,7 +101,8 @@ export class ClickhouseService {
           disease_id,
           maxIf(datasource_score, datasource_id = {orderBy:String}) AS datasource_order_score,
           groupArray(concat(datasource_id, ',', toString(datasource_score))) AS datasourceScores,
-          overall_score
+          overall_score,
+          count() OVER () AS total_count
         FROM mv_datasource_association_score_overall_association_score
         WHERE disease_id = {diseaseId:String}
           AND gene_id IN ({geneIds:Array(String)})
@@ -125,7 +128,8 @@ export class ClickhouseService {
         format: 'JSONEachRow',
       });
 
-      const results: TargetDiseaseAssociation[] = [];
+      const results: TargetDiseaseAssociationRow[] = [];
+      let totalCount = 0;
 
       for await (const rows of resultSet.stream<{
         gene_id: string;
@@ -133,9 +137,15 @@ export class ClickhouseService {
         disease_id: string;
         datasourceScores: string[];
         overall_score: number;
+        total_count: number;
       }>()) {
         for (const row of rows) {
           const data = row.json();
+
+          // Get total count from the first row
+          if (totalCount === 0) {
+            totalCount = data.total_count;
+          }
 
           // Transform datasourceScores from string array to object array
           const datasourceScores = data.datasourceScores.map(
@@ -159,7 +169,10 @@ export class ClickhouseService {
         }
       }
 
-      return results;
+      return {
+        rows: results,
+        totalCount,
+      };
     } catch (error) {
       this.logger.error('targetDiseaseAssociationTable query failed', error);
       throw error;

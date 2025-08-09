@@ -1,4 +1,4 @@
-import { Field, ObjectType, Float, ID } from '@nestjs/graphql';
+import { Field, ObjectType, Float, ID, Int } from '@nestjs/graphql';
 
 @ObjectType()
 export class ScoredKeyValue {
@@ -21,7 +21,7 @@ export class Target {
 }
 
 @ObjectType()
-export class TargetDiseaseAssociation {
+export class TargetDiseaseAssociationRow {
   @Field()
   target: Target;
 
@@ -30,4 +30,13 @@ export class TargetDiseaseAssociation {
 
   @Field(() => Float)
   overall_score: number;
+}
+
+@ObjectType()
+export class TargetDiseaseAssociationTable {
+  @Field(() => [TargetDiseaseAssociationRow])
+  rows: TargetDiseaseAssociationRow[];
+
+  @Field(() => Int, { nullable: true })
+  totalCount: number;
 }

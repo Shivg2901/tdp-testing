@@ -9,15 +9,15 @@ import {
 } from '@nestjs/graphql';
 import {
   TopGene,
-  TargetDiseaseAssociation,
   OrderByEnum,
   ScoredKeyValue,
   Target,
+  TargetDiseaseAssociationTable,
 } from './models';
 import { Pagination } from './models/Pagination.model';
 import { DataLoaderService } from '@/dataloader';
 
-@Resolver(() => TargetDiseaseAssociation)
+@Resolver()
 export class ClickhouseResolver {
   constructor(private readonly clickhouseService: ClickhouseService) {}
 
@@ -29,7 +29,7 @@ export class ClickhouseResolver {
     return this.clickhouseService.getTopGenesByDisease(diseaseId, limit);
   }
 
-  @Query(() => [TargetDiseaseAssociation])
+  @Query(() => TargetDiseaseAssociationTable)
   async targetDiseaseAssociationTable(
     @Args('geneIds', { type: () => [String] }) geneIds: string[],
     @Args('diseaseId', { type: () => String }) diseaseId: string,
