@@ -5,7 +5,7 @@ import { OPENTARGET_HEATMAP_QUERY } from '@/lib/gql';
 import { useStore } from '@/lib/hooks';
 import { type OpenTargetsTableData, type OpenTargetsTableVariables, OrderByEnum } from '@/lib/interface';
 import { type EventMessage, Events, eventEmitter, orderByStringToEnum } from '@/lib/utils';
-import { useLazyQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import type { CheckedState } from '@radix-ui/react-checkbox';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -33,53 +33,62 @@ export function OpenTargetsHeatmap() {
   const [pagination, setPagination] = useState({ page: 1, limit: 25 });
   const [selectedGeneNames, setSelectedGeneNames] = useState<Set<string>>(new Set());
 
-  const [refetch, { loading, error, data: queryData }] = useLazyQuery<OpenTargetsTableData, OpenTargetsTableVariables>(
-    OPENTARGET_HEATMAP_QUERY,
-  );
+  const stableGeneIds = useMemo(() => [...geneIds].sort(), [geneIds]);
+  const variables = useMemo<OpenTargetsTableVariables>(() => {
+    return {
+      geneIds: geneIdsToQuery.length ? geneIdsToQuery : stableGeneIds,
+      diseaseId,
+      orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
+      page: pagination,
+    };
+  }, [geneIdsToQuery, stableGeneIds, diseaseId, sortingColumn, pagination]);
 
-  useEffect(() => {
-    refetch({
-      variables: {
-        geneIds,
-        diseaseId,
-        orderBy: OrderByEnum.SCORE,
-        page: { page: 1, limit: 25 },
-      },
-    });
-    setGeneIdsToQuery(geneIds.sort());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [geneIds, diseaseId]);
+  const {
+    data: queryData,
+    previousData,
+    loading,
+    error,
+    refetch,
+  } = useQuery<OpenTargetsTableData, OpenTargetsTableVariables>(OPENTARGET_HEATMAP_QUERY, {
+    variables,
+    fetchPolicy: 'cache-first',
+    nextFetchPolicy: 'cache-first',
+    notifyOnNetworkStatusChange: true,
+    returnPartialData: true,
+    skip: !diseaseId || stableGeneIds.length === 0,
+  });
 
-  const totalCount = queryData?.targetDiseaseAssociationTable.totalCount ?? 0;
+  const totalCount = (queryData ?? previousData)?.targetDiseaseAssociationTable.totalCount ?? 0;
   const maxPage = Math.max(1, Math.ceil(totalCount / pagination.limit));
 
   if (error) console.error('Error fetching OpenTargets heatmap data:', error);
 
-  const tableData: TargetDiseaseAssociationRow[] =
-    queryData?.targetDiseaseAssociationTable.rows.map(row => {
-      const prioritization: Record<string, number> = {};
-      if (Array.isArray(row.target.prioritization)) {
-        for (const item of row.target.prioritization) {
-          prioritization[item.key] = item.score;
-        }
+  const tableData: TargetDiseaseAssociationRow[] = (
+    (queryData ?? previousData)?.targetDiseaseAssociationTable.rows ?? []
+  ).map(row => {
+    const prioritization: Record<string, number> = {};
+    if (Array.isArray(row.target.prioritization)) {
+      for (const item of row.target.prioritization) {
+        prioritization[item.key] = item.score;
       }
-      const datasources: Record<string, number> = {};
-      if (Array.isArray(row.datasourceScores)) {
-        for (const item of row.datasourceScores as { key: string; score: number }[]) {
-          datasources[item.key] = item.score;
-        }
+    }
+    const datasources: Record<string, number> = {};
+    if (Array.isArray(row.datasourceScores)) {
+      for (const item of row.datasourceScores as { key: string; score: number }[]) {
+        datasources[item.key] = item.score;
       }
-      return {
-        target: row.target.name,
-        'Association Score': row.overall_score,
-        ...datasources,
-        ...prioritization,
-      };
-    }) || [];
+    }
+    return {
+      target: row.target.name,
+      'Association Score': row.overall_score,
+      ...datasources,
+      ...prioritization,
+    };
+  });
 
   const toggleOnlyVisible = (checked: CheckedState) => {
     if (checked !== true) {
-      const geneIdsToQuery = selectedGeneNames.size
+      const nextGeneIdsToQuery = selectedGeneNames.size
         ? Array.from(selectedGeneNames)
             .reduce<string[]>((acc, geneId) => {
               const id = geneNameToID.get(geneId);
@@ -87,15 +96,13 @@ export function OpenTargetsHeatmap() {
               return acc;
             }, [])
             .sort()
-        : geneIds;
-      setGeneIdsToQuery(geneIdsToQuery);
+        : stableGeneIds;
+      setGeneIdsToQuery(nextGeneIdsToQuery);
       refetch({
-        variables: {
-          geneIds: geneIdsToQuery,
-          diseaseId,
-          orderBy: orderByStringToEnum(sortingColumn ?? 'Association Score'),
-          page: pagination,
-        },
+        geneIds: nextGeneIdsToQuery,
+        diseaseId,
+        orderBy: orderByStringToEnum(sortingColumn ?? 'Association Score') || OrderByEnum.SCORE,
+        page: pagination,
       });
     } else {
       eventEmitter.emit(Events.VISIBLE_NODES);
@@ -112,38 +119,33 @@ export function OpenTargetsHeatmap() {
             return acc;
           }, [])
           .sort()
-      : geneIdsToQuery;
+      : stableGeneIds;
+    setGeneIdsToQuery(value.size ? tmpGeneIdsToQuery : []);
     refetch({
-      variables: {
-        geneIds: tmpGeneIdsToQuery,
-        diseaseId,
-        orderBy: orderByStringToEnum(sortingColumn ?? 'Association Score'),
-        page: pagination,
-      },
+      geneIds: tmpGeneIdsToQuery,
+      diseaseId,
+      orderBy: orderByStringToEnum(sortingColumn ?? 'Association Score') || OrderByEnum.SCORE,
+      page: pagination,
     });
   };
 
-  const handlePaginationChange = (pagination: { page: number; limit: number }) => {
-    setPagination(pagination);
+  const handlePaginationChange = (next: { page: number; limit: number }) => {
+    setPagination(next);
     refetch({
-      variables: {
-        geneIds: geneIdsToQuery,
-        diseaseId,
-        orderBy: orderByStringToEnum(sortingColumn),
-        page: pagination,
-      },
+      geneIds: geneIdsToQuery.length ? geneIdsToQuery : stableGeneIds,
+      diseaseId,
+      orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
+      page: next,
     });
   };
 
   const handleSortingChange = (columnId: string) => {
     setSortingColumn(columnId);
     refetch({
-      variables: {
-        geneIds: geneIdsToQuery,
-        diseaseId,
-        orderBy: orderByStringToEnum(columnId) || OrderByEnum.SCORE,
-        page: pagination,
-      },
+      geneIds: geneIdsToQuery.length ? geneIdsToQuery : stableGeneIds,
+      diseaseId,
+      orderBy: orderByStringToEnum(columnId) || OrderByEnum.SCORE,
+      page: pagination,
     });
   };
 
@@ -154,17 +156,15 @@ export function OpenTargetsHeatmap() {
         const id = geneNameToID.get(geneName);
         if (id) selectedGeneIds.add(id);
       }
-      const geneIdsToQuery = Array.from(
+      const nextGeneIdsToQuery = Array.from(
         selectedGeneIds.size ? selectedGeneIds.intersection(data.visibleNodeGeneIds) : data.visibleNodeGeneIds,
       ).sort();
-      setGeneIdsToQuery(geneIdsToQuery);
+      setGeneIdsToQuery(nextGeneIdsToQuery);
       refetch({
-        variables: {
-          geneIds: geneIdsToQuery,
-          diseaseId,
-          orderBy: orderByStringToEnum(sortingColumn),
-          page: pagination,
-        },
+        geneIds: nextGeneIdsToQuery,
+        diseaseId,
+        orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
+        page: pagination,
       });
     });
 
@@ -210,7 +210,7 @@ export function OpenTargetsHeatmap() {
               sortingColumn={sortingColumn}
               onSortChange={handleSortingChange}
               colorScale={value => assocColorScale(typeof value === 'number' ? value : 0)}
-              loading={loading}
+              loading={loading && !(queryData || previousData)}
             />
             <div className='mt-2'>
               <AssociationScoreLegend />
@@ -229,7 +229,7 @@ export function OpenTargetsHeatmap() {
                   ? assocColorScale(typeof value === 'number' ? value : 0.1)
                   : prioritizationColorScale(typeof value === 'number' ? value : 0.1)
               }
-              loading={loading}
+              loading={loading && !(queryData || previousData)}
             />
             <div className='mt-2'>
               <PrioritizationIndicatorLegend />

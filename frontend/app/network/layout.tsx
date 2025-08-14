@@ -10,13 +10,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, FileTextIcon, HomeIcon } from 'lucide-react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'next-view-transitions';
 
 export default function NetworkLayoutPage({ children }: { children: React.ReactNode }) {
   const [tab, setTab] = React.useState('Network');
   const [leftSidebar, setLeftSidebar] = React.useState<boolean>(true);
   const [rightSidebar, setRightSidebar] = React.useState<boolean>(true);
+
+  useEffect(() => {
+    if (tab === 'Network') {
+      window.dispatchEvent(new Event('resize'));
+    }
+  }, [tab]);
 
   return (
     <Tabs value={tab} onValueChange={setTab} className='h-screen flex flex-col'>
@@ -66,7 +72,7 @@ export default function NetworkLayoutPage({ children }: { children: React.ReactN
           >
             {children}
           </TabsContent>
-          <TabsContent value='Heatmap' className='h-full mt-0'>
+          <TabsContent value='Heatmap' className={cn('h-full mt-0', tab === 'Heatmap' ? 'visible' : 'invisible fixed')}>
             <ScrollArea className='h-full'>
               <OpenTargetsHeatmap />
             </ScrollArea>
