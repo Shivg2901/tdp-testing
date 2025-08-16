@@ -12,20 +12,22 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, FileTextIcon, HomeIcon } from 'lucide-react';
 import React, { useEffect } from 'react';
 import { Link } from 'next-view-transitions';
+import { useStore } from '@/lib/hooks';
 
 export default function NetworkLayoutPage({ children }: { children: React.ReactNode }) {
-  const [tab, setTab] = React.useState('Network');
+  const activeTab = useStore(state => state.activeTab);
+  const setActiveTab = useStore(state => state.setActiveTab);
   const [leftSidebar, setLeftSidebar] = React.useState<boolean>(true);
   const [rightSidebar, setRightSidebar] = React.useState<boolean>(true);
 
   useEffect(() => {
-    if (tab === 'Network') {
+    if (activeTab === 'Network') {
       window.dispatchEvent(new Event('resize'));
     }
-  }, [tab]);
+  }, [activeTab]);
 
   return (
-    <Tabs value={tab} onValueChange={setTab} className='h-screen flex flex-col'>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className='h-screen flex flex-col'>
       <div className='bg-primary h-12 flex items-center justify-between p-2'>
         <Button variant='oldtool' size='icon' className='h-full' onClick={() => setLeftSidebar(!leftSidebar)}>
           {leftSidebar ? <ChevronLeft className='h-4 w-4' /> : <ChevronRight className='h-4 w-4' />}
@@ -68,11 +70,14 @@ export default function NetworkLayoutPage({ children }: { children: React.ReactN
           <TabsContent
             forceMount
             value='Network'
-            className={cn('h-full mt-0', tab === 'Network' ? 'visible' : 'invisible fixed')}
+            className={cn('h-full mt-0', activeTab === 'Network' ? 'visible' : 'invisible fixed')}
           >
             {children}
           </TabsContent>
-          <TabsContent value='Heatmap' className={cn('h-full mt-0', tab === 'Heatmap' ? 'visible' : 'invisible fixed')}>
+          <TabsContent
+            value='Heatmap'
+            className={cn('h-full mt-0', activeTab === 'Heatmap' ? 'visible' : 'invisible fixed')}
+          >
             <ScrollArea className='h-full'>
               <OpenTargetsHeatmap />
             </ScrollArea>

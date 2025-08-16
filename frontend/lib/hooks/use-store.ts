@@ -3,7 +3,7 @@ import type { GraphStore } from '../interface';
 import { initRadioOptions } from '../utils';
 import { OPENTARGETS_PROPERTY_MAPPING } from '../data';
 
-export const useStore = create<GraphStore>(() => ({
+export const useStore = create<GraphStore>(set => ({
   projectTitle: 'Untitled',
   nodeSearchQuery: '',
   nodeSuggestions: [],
@@ -53,4 +53,15 @@ export const useStore = create<GraphStore>(() => ({
   graphConfig: null,
   edgeOpacity: 1,
   highlightNeighborNodes: false,
+
+  activeTab: 'Network',
+  heatmapPagination: { page: 1, limit: 25 },
+  heatmapSortingColumn: 'Association Score',
+
+  setActiveTab: tab => set({ activeTab: tab }),
+  setHeatmapPagination: pagination => set({ heatmapPagination: pagination }),
+  setHeatmapSortingColumn: column => set({ heatmapSortingColumn: column }),
+
+  showOnlyVisible: false,
+  setShowOnlyVisible: (value: boolean) => set({ showOnlyVisible: value }),
 }));

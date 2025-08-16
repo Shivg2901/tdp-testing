@@ -21,27 +21,43 @@ import { assocColorScale, prioritizationColorScale } from './colorScales';
 export function OpenTargetsHeatmap() {
   const geneNames = useStore(state => state.geneNames);
   const geneNameToID = useStore(state => state.geneNameToID);
+  const showOnlyVisible = useStore(state => state.showOnlyVisible);
+  const setShowOnlyVisible = useStore(state => state.setShowOnlyVisible);
+  const radialAnalysis = useStore(state => state.radialAnalysis);
 
-  const geneIds = useMemo(() => {
-    return geneNames.map(g => geneNameToID.get(g) ?? g);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [geneNames]);
+  const pagination = useStore(state => state.heatmapPagination);
+  const sortingColumn = useStore(state => state.heatmapSortingColumn);
+  const setPagination = useStore(state => state.setHeatmapPagination);
+  const setSortingColumn = useStore(state => state.setHeatmapSortingColumn);
 
+  const geneIds = useMemo(() => geneNames.map(g => geneNameToID.get(g) ?? g), [geneNames, geneNameToID]);
   const diseaseId = useStore(state => state.diseaseName);
   const [geneIdsToQuery, setGeneIdsToQuery] = useState<string[]>([]);
-  const [sortingColumn, setSortingColumn] = useState<string>('Association Score');
-  const [pagination, setPagination] = useState({ page: 1, limit: 25 });
   const [selectedGeneNames, setSelectedGeneNames] = useState<Set<string>>(new Set());
 
   const stableGeneIds = useMemo(() => [...geneIds].sort(), [geneIds]);
-  const variables = useMemo<OpenTargetsTableVariables>(() => {
-    return {
-      geneIds: geneIdsToQuery.length ? geneIdsToQuery : stableGeneIds,
+
+  const effectiveGeneIdsToQuery = showOnlyVisible
+    ? geneIdsToQuery
+    : selectedGeneNames.size
+      ? Array.from(selectedGeneNames)
+          .reduce<string[]>((acc, geneName) => {
+            const id = geneNameToID.get(geneName);
+            if (id) acc.push(id);
+            return acc;
+          }, [])
+          .sort()
+      : stableGeneIds;
+
+  const variables = useMemo<OpenTargetsTableVariables>(
+    () => ({
+      geneIds: effectiveGeneIdsToQuery,
       diseaseId,
       orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
       page: pagination,
-    };
-  }, [geneIdsToQuery, stableGeneIds, diseaseId, sortingColumn, pagination]);
+    }),
+    [effectiveGeneIdsToQuery, diseaseId, sortingColumn, pagination],
+  );
 
   const {
     data: queryData,
@@ -86,53 +102,72 @@ export function OpenTargetsHeatmap() {
     };
   });
 
+  useEffect(() => {
+    if (showOnlyVisible) {
+      const timer = setTimeout(() => {
+        eventEmitter.emit(Events.VISIBLE_NODES);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [radialAnalysis, showOnlyVisible]);
+
   const toggleOnlyVisible = (checked: CheckedState) => {
-    if (checked !== true) {
-      const nextGeneIdsToQuery = selectedGeneNames.size
+    const value = checked === true;
+    setShowOnlyVisible(value);
+
+    if (value) {
+      eventEmitter.emit(Events.VISIBLE_NODES);
+    } else {
+      setGeneIdsToQuery([]);
+      const defaultGeneIds = selectedGeneNames.size
         ? Array.from(selectedGeneNames)
-            .reduce<string[]>((acc, geneId) => {
-              const id = geneNameToID.get(geneId);
+            .reduce<string[]>((acc, geneName) => {
+              const id = geneNameToID.get(geneName);
               if (id) acc.push(id);
               return acc;
             }, [])
             .sort()
         : stableGeneIds;
-      setGeneIdsToQuery(nextGeneIdsToQuery);
+
       refetch({
-        geneIds: nextGeneIdsToQuery,
+        geneIds: defaultGeneIds,
         diseaseId,
-        orderBy: orderByStringToEnum(sortingColumn ?? 'Association Score') || OrderByEnum.SCORE,
+        orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
         page: pagination,
       });
-    } else {
-      eventEmitter.emit(Events.VISIBLE_NODES);
     }
   };
 
   const handleSearchSelection = (value: Set<string>) => {
     setSelectedGeneNames(value);
-    const tmpGeneIdsToQuery = value.size
-      ? Array.from(value)
-          .reduce<string[]>((acc, geneId) => {
-            const id = geneNameToID.get(geneId);
-            if (id) acc.push(id);
-            return acc;
-          }, [])
-          .sort()
-      : stableGeneIds;
-    setGeneIdsToQuery(value.size ? tmpGeneIdsToQuery : []);
-    refetch({
-      geneIds: tmpGeneIdsToQuery,
-      diseaseId,
-      orderBy: orderByStringToEnum(sortingColumn ?? 'Association Score') || OrderByEnum.SCORE,
-      page: pagination,
-    });
+
+    if (showOnlyVisible) {
+      eventEmitter.emit(Events.VISIBLE_NODES);
+    } else {
+      const tmpGeneIdsToQuery = value.size
+        ? Array.from(value)
+            .reduce<string[]>((acc, geneName) => {
+              const id = geneNameToID.get(geneName);
+              if (id) acc.push(id);
+              return acc;
+            }, [])
+            .sort()
+        : stableGeneIds;
+
+      setGeneIdsToQuery([]);
+      refetch({
+        geneIds: tmpGeneIdsToQuery,
+        diseaseId,
+        orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
+        page: pagination,
+      });
+    }
   };
 
   const handlePaginationChange = (next: { page: number; limit: number }) => {
     setPagination(next);
     refetch({
-      geneIds: geneIdsToQuery.length ? geneIdsToQuery : stableGeneIds,
+      geneIds: effectiveGeneIdsToQuery,
       diseaseId,
       orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
       page: next,
@@ -142,7 +177,7 @@ export function OpenTargetsHeatmap() {
   const handleSortingChange = (columnId: string) => {
     setSortingColumn(columnId);
     refetch({
-      geneIds: geneIdsToQuery.length ? geneIdsToQuery : stableGeneIds,
+      geneIds: effectiveGeneIdsToQuery,
       diseaseId,
       orderBy: orderByStringToEnum(columnId) || OrderByEnum.SCORE,
       page: pagination,
@@ -150,35 +185,38 @@ export function OpenTargetsHeatmap() {
   };
 
   useEffect(() => {
-    eventEmitter.on(Events.VISIBLE_NODES_RESULTS, (data: EventMessage[Events.VISIBLE_NODES_RESULTS]) => {
-      const selectedGeneIds = new Set<string>();
-      for (const geneName of selectedGeneNames) {
-        const id = geneNameToID.get(geneName);
-        if (id) selectedGeneIds.add(id);
-      }
-      const nextGeneIdsToQuery = Array.from(
-        selectedGeneIds.size ? selectedGeneIds.intersection(data.visibleNodeGeneIds) : data.visibleNodeGeneIds,
-      ).sort();
-      setGeneIdsToQuery(nextGeneIdsToQuery);
-      refetch({
-        geneIds: nextGeneIdsToQuery,
-        diseaseId,
-        orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
-        page: pagination,
-      });
-    });
+    const handler = (data: EventMessage[Events.VISIBLE_NODES_RESULTS]) => {
+      if (showOnlyVisible) {
+        const selectedGeneIds = new Set<string>();
+        for (const geneName of selectedGeneNames) {
+          const id = geneNameToID.get(geneName);
+          if (id) selectedGeneIds.add(id);
+        }
 
+        const nextGeneIdsToQuery = Array.from(
+          selectedGeneIds.size ? selectedGeneIds.intersection(data.visibleNodeGeneIds) : data.visibleNodeGeneIds,
+        ).sort();
+
+        setGeneIdsToQuery(nextGeneIdsToQuery);
+        refetch({
+          geneIds: nextGeneIdsToQuery,
+          diseaseId,
+          orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
+          page: pagination,
+        });
+      }
+    };
+    eventEmitter.on(Events.VISIBLE_NODES_RESULTS, handler);
     return () => {
       eventEmitter.removeAllListeners(Events.VISIBLE_NODES_RESULTS);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [diseaseId]);
+  }, [diseaseId, geneNameToID, selectedGeneNames, sortingColumn, pagination, refetch, showOnlyVisible]);
 
   return (
     <div className='h-full'>
       <div className='flex items-center gap-4 p-4'>
         <div className='flex text-nowrap font-semibold items-center gap-2'>
-          <Checkbox defaultChecked={false} onCheckedChange={toggleOnlyVisible} className='shrink-0' />
+          <Checkbox checked={showOnlyVisible} onCheckedChange={toggleOnlyVisible} className='shrink-0' />
           Show only visible
         </div>
         <VirtualizedCombobox
@@ -237,7 +275,6 @@ export function OpenTargetsHeatmap() {
           </div>
         </TabsContent>
       </Tabs>
-      {/* Pagination controls */}
       <div className='flex flex-col items-center w-full mt-2 gap-2'>
         <div className='flex items-center justify-center gap-2 w-full'>
           <Button
