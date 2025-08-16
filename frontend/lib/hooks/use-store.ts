@@ -55,13 +55,9 @@ export const useStore = create<GraphStore>(set => ({
   highlightNeighborNodes: false,
 
   activeTab: 'Network',
+  setActiveTab: tab => set({ activeTab: tab }),
+
   heatmapPagination: { page: 1, limit: 25 },
   heatmapSortingColumn: 'Association Score',
-
-  setActiveTab: tab => set({ activeTab: tab }),
-  setHeatmapPagination: pagination => set({ heatmapPagination: pagination }),
-  setHeatmapSortingColumn: column => set({ heatmapSortingColumn: column }),
-
   showOnlyVisible: false,
-  setShowOnlyVisible: (value: boolean) => set({ showOnlyVisible: value }),
 }));

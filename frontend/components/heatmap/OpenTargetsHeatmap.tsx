@@ -5,7 +5,7 @@ import { OPENTARGET_HEATMAP_QUERY } from '@/lib/gql';
 import { useStore } from '@/lib/hooks';
 import { type OpenTargetsTableData, type OpenTargetsTableVariables, OrderByEnum } from '@/lib/interface';
 import { type EventMessage, Events, eventEmitter, orderByStringToEnum } from '@/lib/utils';
-import { useQuery } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import type { CheckedState } from '@radix-ui/react-checkbox';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -22,13 +22,10 @@ export function OpenTargetsHeatmap() {
   const geneNames = useStore(state => state.geneNames);
   const geneNameToID = useStore(state => state.geneNameToID);
   const showOnlyVisible = useStore(state => state.showOnlyVisible);
-  const setShowOnlyVisible = useStore(state => state.setShowOnlyVisible);
   const radialAnalysis = useStore(state => state.radialAnalysis);
 
   const pagination = useStore(state => state.heatmapPagination);
   const sortingColumn = useStore(state => state.heatmapSortingColumn);
-  const setPagination = useStore(state => state.setHeatmapPagination);
-  const setSortingColumn = useStore(state => state.setHeatmapSortingColumn);
 
   const geneIds = useMemo(() => geneNames.map(g => geneNameToID.get(g) ?? g), [geneNames, geneNameToID]);
   const diseaseId = useStore(state => state.diseaseName);
@@ -49,35 +46,32 @@ export function OpenTargetsHeatmap() {
           .sort()
       : stableGeneIds;
 
-  const variables = useMemo<OpenTargetsTableVariables>(
-    () => ({
-      geneIds: effectiveGeneIdsToQuery,
-      diseaseId,
-      orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
-      page: pagination,
-    }),
-    [effectiveGeneIdsToQuery, diseaseId, sortingColumn, pagination],
-  );
-
-  const {
-    data: queryData,
-    previousData,
-    loading,
-    error,
-    refetch,
-  } = useQuery<OpenTargetsTableData, OpenTargetsTableVariables>(OPENTARGET_HEATMAP_QUERY, {
-    variables,
+  const [runQuery, { data: queryData, previousData, loading }] = useLazyQuery<
+    OpenTargetsTableData,
+    OpenTargetsTableVariables
+  >(OPENTARGET_HEATMAP_QUERY, {
     fetchPolicy: 'cache-first',
     nextFetchPolicy: 'cache-first',
     notifyOnNetworkStatusChange: true,
     returnPartialData: true,
-    skip: !diseaseId || stableGeneIds.length === 0,
   });
+
+  useEffect(() => {
+    if (diseaseId && stableGeneIds.length > 0) {
+      runQuery({
+        variables: {
+          geneIds: effectiveGeneIdsToQuery,
+          diseaseId,
+          orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
+          page: pagination,
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diseaseId, stableGeneIds.length]);
 
   const totalCount = (queryData ?? previousData)?.targetDiseaseAssociationTable.totalCount ?? 0;
   const maxPage = Math.max(1, Math.ceil(totalCount / pagination.limit));
-
-  if (error) console.error('Error fetching OpenTargets heatmap data:', error);
 
   const tableData: TargetDiseaseAssociationRow[] = (
     (queryData ?? previousData)?.targetDiseaseAssociationTable.rows ?? []
@@ -106,14 +100,14 @@ export function OpenTargetsHeatmap() {
     if (showOnlyVisible) {
       const timer = setTimeout(() => {
         eventEmitter.emit(Events.VISIBLE_NODES);
-      }, 150);
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [radialAnalysis, showOnlyVisible]);
 
   const toggleOnlyVisible = (checked: CheckedState) => {
     const value = checked === true;
-    setShowOnlyVisible(value);
+    useStore.setState({ showOnlyVisible: value });
 
     if (value) {
       eventEmitter.emit(Events.VISIBLE_NODES);
@@ -129,11 +123,13 @@ export function OpenTargetsHeatmap() {
             .sort()
         : stableGeneIds;
 
-      refetch({
-        geneIds: defaultGeneIds,
-        diseaseId,
-        orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
-        page: pagination,
+      runQuery({
+        variables: {
+          geneIds: defaultGeneIds,
+          diseaseId,
+          orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
+          page: pagination,
+        },
       });
     }
   };
@@ -155,32 +151,38 @@ export function OpenTargetsHeatmap() {
         : stableGeneIds;
 
       setGeneIdsToQuery([]);
-      refetch({
-        geneIds: tmpGeneIdsToQuery,
-        diseaseId,
-        orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
-        page: pagination,
+      runQuery({
+        variables: {
+          geneIds: tmpGeneIdsToQuery,
+          diseaseId,
+          orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
+          page: pagination,
+        },
       });
     }
   };
 
   const handlePaginationChange = (next: { page: number; limit: number }) => {
-    setPagination(next);
-    refetch({
-      geneIds: effectiveGeneIdsToQuery,
-      diseaseId,
-      orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
-      page: next,
+    useStore.setState({ heatmapPagination: next });
+    runQuery({
+      variables: {
+        geneIds: effectiveGeneIdsToQuery,
+        diseaseId,
+        orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
+        page: next,
+      },
     });
   };
 
   const handleSortingChange = (columnId: string) => {
-    setSortingColumn(columnId);
-    refetch({
-      geneIds: effectiveGeneIdsToQuery,
-      diseaseId,
-      orderBy: orderByStringToEnum(columnId) || OrderByEnum.SCORE,
-      page: pagination,
+    useStore.setState({ heatmapSortingColumn: columnId });
+    runQuery({
+      variables: {
+        geneIds: effectiveGeneIdsToQuery,
+        diseaseId,
+        orderBy: orderByStringToEnum(columnId) || OrderByEnum.SCORE,
+        page: pagination,
+      },
     });
   };
 
@@ -194,15 +196,19 @@ export function OpenTargetsHeatmap() {
         }
 
         const nextGeneIdsToQuery = Array.from(
-          selectedGeneIds.size ? selectedGeneIds.intersection(data.visibleNodeGeneIds) : data.visibleNodeGeneIds,
+          selectedGeneIds.size
+            ? new Set([...selectedGeneIds].filter(x => data.visibleNodeGeneIds.has(x)))
+            : data.visibleNodeGeneIds,
         ).sort();
 
         setGeneIdsToQuery(nextGeneIdsToQuery);
-        refetch({
-          geneIds: nextGeneIdsToQuery,
-          diseaseId,
-          orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
-          page: pagination,
+        runQuery({
+          variables: {
+            geneIds: nextGeneIdsToQuery,
+            diseaseId,
+            orderBy: orderByStringToEnum(sortingColumn) || OrderByEnum.SCORE,
+            page: pagination,
+          },
         });
       }
     };
@@ -210,7 +216,8 @@ export function OpenTargetsHeatmap() {
     return () => {
       eventEmitter.removeAllListeners(Events.VISIBLE_NODES_RESULTS);
     };
-  }, [diseaseId, geneNameToID, selectedGeneNames, sortingColumn, pagination, refetch, showOnlyVisible]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diseaseId, selectedGeneNames, sortingColumn, pagination, runQuery, showOnlyVisible]);
 
   return (
     <div className='h-full'>

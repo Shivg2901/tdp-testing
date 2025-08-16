@@ -20,6 +20,7 @@ export function GraphSettings({ clickedNodesRef }: { clickedNodesRef?: React.Mut
   const selectedNodeSizeProperty = useStore(state => state.selectedNodeSizeProperty);
   const highlightNeighborNodes = useStore(state => state.highlightNeighborNodes);
   const activeTab = useStore(state => state.activeTab);
+  const nodeDegreeCutOff = useStore(state => state.radialAnalysis.nodeDegreeCutOff);
 
   useEffect(() => {
     sigma.on('enterNode', e => setHoveredNode({ node: e.node, ctrlKey: e.event.original.ctrlKey }));
@@ -118,7 +119,6 @@ export function GraphSettings({ clickedNodesRef }: { clickedNodesRef?: React.Mut
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hoveredNode, setSettings, sigma]);
 
-  const radialAnalysis = useStore(state => state.radialAnalysis);
   const totalNodes = useStore(state => state.totalNodes);
 
   useEffect(() => {
@@ -142,5 +142,5 @@ export function GraphSettings({ clickedNodesRef }: { clickedNodesRef?: React.Mut
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [radialAnalysis, totalNodes, sigma, activeTab]);
+  }, [nodeDegreeCutOff, totalNodes, sigma, activeTab]);
 }

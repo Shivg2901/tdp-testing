@@ -163,23 +163,10 @@ export interface GraphStore {
    * Show only visible nodes (for global heatmap visibility)
    */
   showOnlyVisible: boolean;
-
-  /**
-   * Setter for showOnlyVisible
-   */
-  setShowOnlyVisible: (value: boolean) => void;
   /**
    * Setter function for the active tab.
    */
   setActiveTab: (tab: string) => void;
-  /**
-   * Setter function for heatmap pagination.
-   */
-  setHeatmapPagination: (pagination: { page: number; limit: number }) => void;
-  /**
-   * Setter function for heatmap sorting column.
-   */
-  setHeatmapSortingColumn: (column: string) => void;
 }
 
 export type RadioOptions = {
